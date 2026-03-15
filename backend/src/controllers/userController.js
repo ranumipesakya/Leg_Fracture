@@ -8,6 +8,7 @@ function formatUser(user) {
     phone: user.phone || '',
     gender: user.gender || '',
     dob: user.dob || '',
+    avatar: user.avatar || '',
     lastLogin: user.lastLogin || null,
     initials: `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase(),
   };
@@ -15,7 +16,7 @@ function formatUser(user) {
 
 async function updateMe(req, res) {
   try {
-    const allowedFields = ['firstName', 'lastName', 'phone', 'gender', 'dob'];
+    const allowedFields = ['firstName', 'lastName', 'phone', 'gender', 'dob', 'avatar'];
     const updates = {};
 
     for (const key of allowedFields) {

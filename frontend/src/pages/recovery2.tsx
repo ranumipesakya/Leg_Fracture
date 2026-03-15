@@ -200,7 +200,7 @@ const Recovery2: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] font-['Plus_Jakarta_Sans',_sans-serif]">
+    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <section
         className="h-[100svh] md:h-screen overflow-hidden"
         onWheel={(e) => {
@@ -217,14 +217,14 @@ const Recovery2: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10 md:to-black/0" />
           </div>
 
-          <div className="flex items-center justify-center h-full px-6 py-8 md:py-10 md:px-10 bg-[#F0F7FF]">
+          <div className="flex items-center justify-center h-full px-6 py-8 md:py-10 md:px-10 bg-[#F0F7FF] dark:bg-slate-900 transition-colors">
             <div className="w-full max-w-xl">
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-[#1A202C] uppercase leading-tight">
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-[#1A202C] dark:text-white uppercase leading-tight">
                 After a Fall
                 <br />
                 Exercises
               </h1>
-              <p className="mt-5 text-sm md:text-base text-gray-600 leading-relaxed max-w-lg">
+              <p className="mt-5 text-sm md:text-base text-gray-600 dark:text-slate-400 leading-relaxed max-w-lg">
                 Start gently. If you have severe pain, dizziness, or a suspected
                 fracture, seek medical care before exercising.
               </p>
@@ -233,12 +233,12 @@ const Recovery2: React.FC = () => {
         </div>
       </section>
 
-      <section ref={modulesSectionRef} className="py-20 container mx-auto px-4">
+      <section ref={modulesSectionRef} className="py-20 container mx-auto px-4 bg-[#F0F7FF] dark:bg-slate-950 transition-colors">
         <div className="text-center mb-16">
           <span className="text-[#4A90FF] uppercase tracking-[0.3em] text-base md:text-lg font-black block mb-2">
             Step-by-Step
           </span>
-          <h2 className="text-5xl md:text-6xl font-serif text-[#1A202C]">
+          <h2 className="text-5xl md:text-6xl font-serif text-[#1A202C] dark:text-white">
             Recovery Modules
           </h2>
           <div className="w-16 h-[2px] bg-[#4A90FF] mx-auto mt-4"></div>
@@ -248,21 +248,21 @@ const Recovery2: React.FC = () => {
           {exercises.map((exercise) => (
             <div
               key={exercise.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden mb-12 flex flex-col md:flex-row border border-gray-100 transition-transform hover:shadow-2xl"
+              className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden mb-12 flex flex-col md:flex-row border border-gray-100 dark:border-slate-800 transition-transform hover:shadow-2xl"
             >
-              <div className="md:w-1/2 flex flex-col bg-[#F8FBFF]">
+              <div className="md:w-1/2 flex flex-col bg-[#F8FBFF] dark:bg-slate-800">
                 <div className="relative h-[300px] md:h-[360px]">
                   <img
                     src={exercise.imageUrl}
                     alt={exercise.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-3 left-3 bg-white/90 text-[#1A202C] text-xs font-bold px-3 py-1 rounded-full shadow">
+                  <div className="absolute top-3 left-3 bg-white/90 dark:bg-slate-900/90 text-[#1A202C] dark:text-white text-xs font-bold px-3 py-1 rounded-full shadow">
                     Exercise Image
                   </div>
                 </div>
 
-                <div className="bg-[#1A202C] text-white text-xs uppercase tracking-wider px-4 py-3 font-semibold flex items-center justify-between gap-3">
+                <div className="bg-[#1A202C] dark:bg-slate-950 text-white text-xs uppercase tracking-wider px-4 py-3 font-semibold flex items-center justify-between gap-3">
                   <span>Suggested Video</span>
                   <a
                     href={getYouTubeWatchUrl(exercise.videoUrl) ?? exercise.videoUrl}
@@ -277,7 +277,7 @@ const Recovery2: React.FC = () => {
 
               <div className="md:w-1/2 p-8">
                 <div className="flex justify-between items-start mb-4 gap-4">
-                  <h3 className="text-2xl font-bold text-[#1A202C]">
+                  <h3 className="text-2xl font-bold text-[#1A202C] dark:text-white">
                     {exercise.id}. {exercise.title}
                   </h3>
                   <div className="flex flex-col items-end shrink-0">
@@ -291,10 +291,10 @@ const Recovery2: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-sm font-bold text-gray-700 uppercase mb-2">
+                  <h4 className="text-sm font-bold text-gray-700 dark:text-slate-300 uppercase mb-2">
                     Instructions
                   </h4>
-                  <ul className="text-sm text-gray-600 space-y-2">
+                  <ul className="text-sm text-gray-600 dark:text-slate-400 space-y-2">
                     {exercise.instructions.map((step, index) => (
                       <li key={index} className="flex gap-2">
                         <span className="text-[#4A90FF]">{"\u2022"}</span>
@@ -304,12 +304,12 @@ const Recovery2: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t dark:border-slate-800 pt-4 mt-2">
                   <div>
                     <h5 className="text-[10px] font-black uppercase text-green-600 mb-1">
                       Benefits
                     </h5>
-                    <p className="text-[11px] text-gray-500 leading-tight">
+                    <p className="text-[11px] text-gray-500 dark:text-slate-500 leading-tight">
                       {exercise.benefits.join(", ")}
                     </p>
                   </div>
@@ -317,13 +317,13 @@ const Recovery2: React.FC = () => {
                     <h5 className="text-[10px] font-black uppercase text-red-500 mb-1">
                       Precautions
                     </h5>
-                    <p className="text-[11px] text-gray-500 leading-tight">
+                    <p className="text-[11px] text-gray-500 dark:text-slate-500 leading-tight">
                       {exercise.precautions.join(", ")}
                     </p>
                   </div>
                 </div>
 
-                <p className="mt-4 text-[10px] text-gray-400 uppercase tracking-wider">
+                <p className="mt-4 text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider">
                   Reps: {exercise.reps}
                 </p>
               </div>
@@ -332,12 +332,12 @@ const Recovery2: React.FC = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 pb-16">
-        <div className="max-w-5xl mx-auto bg-[#1A202C] rounded-2xl shadow-lg p-6 md:p-8">
+      <section className="container mx-auto px-4 pb-16 bg-[#F0F7FF] dark:bg-slate-950 transition-colors">
+        <div className="max-w-5xl mx-auto bg-[#1A202C] dark:bg-slate-900 rounded-2xl shadow-lg p-6 md:p-8 border border-transparent dark:border-slate-800">
           <h3 className="text-center text-lg md:text-xl font-extrabold tracking-tight text-white">
             Medical Disclaimer
           </h3>
-          <p className="mt-3 text-sm md:text-base text-white/80 leading-relaxed">
+          <p className="mt-3 text-sm md:text-base text-white/80 dark:text-slate-400 leading-relaxed text-center">
             These exercises are provided to help with general recovery and
             mobility improvement. They are not a replacement for professional
             medical advice. If you experience severe pain, swelling, dizziness,

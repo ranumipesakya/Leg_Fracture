@@ -10,6 +10,7 @@ function formatUser(user) {
     phone: user.phone || '',
     gender: user.gender || '',
     dob: user.dob || '',
+    avatar: user.avatar || '',
     lastLogin: user.lastLogin || null,
     initials: `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase(),
   };

@@ -11,6 +11,7 @@ export type UserProfile = {
   dob?: string;
   lastLogin?: string | null;
   initials: string;
+  avatar?: string;
 };
 
 export type RegisterInput = Omit<UserProfile, 'initials'> & {

@@ -18,6 +18,7 @@ const UploadRecords: React.FC = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,6 +34,16 @@ const UploadRecords: React.FC = () => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
     return date.toLocaleString();
+  };
+  const formatOnlyDate = (value: string | Date) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  };
+  const formatOnlyTime = (value: string | Date) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   };
 
   const recordToRow = (record: RecordItem): UploadedFile => ({
@@ -53,9 +64,7 @@ const UploadRecords: React.FC = () => {
     if (ext === "dcm" || ext === "dicom") return true;
 
     const isImage = ["jpg", "jpeg", "png"].includes(ext);
-    const looksLikeXray = name.includes("xray") || name.includes("x-ray");
-
-    return isImage && looksLikeXray;
+    return isImage;
   };
 
   const isImagingCategory = (category: string) => {
@@ -91,6 +100,12 @@ const UploadRecords: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const tick = () => setCurrentTime(new Date());
+    const id = window.setInterval(tick, 1000 * 30);
+    return () => window.clearInterval(id);
+  }, []);
+
   /* ---------------- DRAG EVENTS ---------------- */
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -106,7 +121,7 @@ const UploadRecords: React.FC = () => {
     for (const file of selected) {
 
       if (!isXrayImage(file)) {
-        setUploadError("❌ This is not an X-ray image. Please upload a valid X-ray.");
+        setUploadError("This is not a supported image type. Please upload a valid X-ray image.");
         continue;
       }
 
@@ -167,25 +182,25 @@ const UploadRecords: React.FC = () => {
   const imagingPercent = Math.round((imagingCount / totalCount) * 100);
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-300">
 
       <PatientNavbar currentPage="upload" />
 
       {/* HEADER */}
-      <header className="bg-white border-b border-slate-200 pt-12 pb-8">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-12 pb-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between gap-4">
 
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900">
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
               Medical Records Vault
             </h1>
 
-            <p className="text-slate-500 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               Securely store and manage your clinical documentation and imaging.
             </p>
 
             {user?.lastLogin && (
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
                 Last login: {formatDateTime(user.lastLogin)}
               </p>
             )}
@@ -193,7 +208,7 @@ const UploadRecords: React.FC = () => {
 
           <div className="flex gap-3">
 
-            <button className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">
+            <button className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
               Suggest Physiotherapy
             </button>
 
@@ -209,6 +224,7 @@ const UploadRecords: React.FC = () => {
               ref={fileInputRef}
               className="hidden"
               multiple
+              accept="image/*,.dcm,.dicom"
               onChange={handleFileInput}
             />
 
@@ -219,20 +235,30 @@ const UploadRecords: React.FC = () => {
       <main className="container mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
 
         {/* STORAGE OVERVIEW */}
-        <aside className="bg-white p-6 rounded-xl border border-slate-200">
+        <aside className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
 
           <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">
             Storage Overview
           </h3>
 
+          <div className="mb-6">
+            <div className="text-[11px] font-bold text-slate-400 uppercase mb-2">Current Time</div>
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Date: {formatOnlyDate(currentTime)}
+            </div>
+            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Time: {formatOnlyTime(currentTime)}
+            </div>
+          </div>
+
           <div className="mb-4">
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm dark:text-slate-300">
               <span>Reports</span>
               <span>{reportCount}</span>
             </div>
 
-            <div className="w-full bg-slate-100 h-1.5 rounded">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded">
               <div className="bg-blue-500 h-full" style={{ width: `${reportPercent}%` }} />
             </div>
 
@@ -240,12 +266,12 @@ const UploadRecords: React.FC = () => {
 
           <div>
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm dark:text-slate-300">
               <span>Imaging (X-Ray)</span>
               <span>{imagingCount}</span>
             </div>
 
-            <div className="w-full bg-slate-100 h-1.5 rounded">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded">
               <div className="bg-indigo-500 h-full" style={{ width: `${imagingPercent}%` }} />
             </div>
 
@@ -262,33 +288,33 @@ const UploadRecords: React.FC = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
-              isDragging ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
+              isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
             }`}
           >
 
-            <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
               </svg>
             </div>
 
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               Upload clinical files
             </h3>
 
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
               Drag and drop your X-ray image here
             </p>
 
           </div>
 
           {/* RECORD TABLE */}
-          <div className="bg-white rounded-xl border overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 overflow-hidden">
 
             <table className="w-full">
 
-              <thead className="bg-slate-50 text-xs uppercase">
+              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase dark:text-slate-400">
                 <tr>
                   <th className="px-6 py-4 text-left">Record Name</th>
                   <th className="px-6 py-4">Category</th>
@@ -298,7 +324,7 @@ const UploadRecords: React.FC = () => {
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="dark:text-slate-300">
 
                 {isLoading ? (
                   <tr>
@@ -315,14 +341,14 @@ const UploadRecords: React.FC = () => {
                 ) : (
                   files.map(file => (
 
-                    <tr key={file.id} className="border-t">
+                    <tr key={file.id} className="border-t dark:border-slate-800">
 
                       <td className="px-6 py-4">{file.name}</td>
                       <td className="text-center">{file.category}</td>
                       <td className="text-center">{file.uploadDate}</td>
 
                       <td className="text-center">
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
+                        <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded text-xs">
                           {file.status}
                         </span>
                       </td>
@@ -346,7 +372,7 @@ const UploadRecords: React.FC = () => {
             </table>
 
             {uploadError && (
-              <div className="px-6 py-3 text-sm text-red-600 bg-red-50 border-t">
+              <div className="px-6 py-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 border-t dark:border-slate-800">
                 {uploadError}
               </div>
             )}

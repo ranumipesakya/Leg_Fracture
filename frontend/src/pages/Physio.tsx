@@ -114,7 +114,7 @@ const Physio: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] font-['Plus_Jakarta_Sans',_sans-serif]">
+    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <PatientNavbar currentPage="physio" />
 
       {/* Hero Section */}
@@ -137,17 +137,17 @@ const Physio: React.FC = () => {
       <section
         ref={offeringsRef}
         id="physio-offerings"
-        className="py-24 bg-[#F0F7FF]"
+        className="py-24 bg-[#F0F7FF] dark:bg-slate-950"
       >
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <span className="text-[#E74C3C] uppercase tracking-[0.4em] text-sm md:text-base font-black block mb-4">
               Our Services
             </span>
-            <h2 className="text-5xl md:text-6xl font-serif text-[#1A202C] mb-6">
+            <h2 className="text-5xl md:text-6xl font-serif text-[#1A202C] dark:text-white mb-6">
               What We&apos;re Offering
             </h2>
-            <div className="w-16 h-[1px] bg-gray-300 mx-auto"></div>
+            <div className="w-16 h-[1px] bg-gray-300 dark:bg-slate-700 mx-auto"></div>
           </div>
 
           <div className="flex flex-wrap justify-center gap-10 md:gap-16">
@@ -169,7 +169,7 @@ const Physio: React.FC = () => {
                   window.location.hash = "/recovery1";
                 }}
               >
-                <div className="h-full w-full overflow-hidden shadow-xl rounded-sm bg-white">
+                <div className="h-full w-full overflow-hidden shadow-xl rounded-sm bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -183,12 +183,12 @@ const Physio: React.FC = () => {
                   </div>
 
                   <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-[85%] z-20">
-                    <div className="bg-white py-6 px-4 text-center shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
-                      <h3 className="font-serif text-xl text-[#1A202C] font-medium leading-tight">
+                    <div className="bg-white dark:bg-slate-900 py-6 px-4 text-center shadow-2xl transition-all duration-300 group-hover:-translate-y-2 border border-transparent dark:border-slate-800">
+                      <h3 className="font-serif text-xl text-[#1A202C] dark:text-white font-medium leading-tight">
                         {item.title}
                       </h3>
 
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         {item.subtitle}
                       </p>
 

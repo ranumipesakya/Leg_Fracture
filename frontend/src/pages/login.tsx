@@ -35,32 +35,32 @@ const LoginPage = () => {
 
   return (
     <div
-      className="h-screen overflow-hidden font-['Plus_Jakarta_Sans',_sans-serif] relative bg-cover bg-center flex items-center justify-center px-6 py-10"
+      className="h-screen overflow-hidden font-['Plus_Jakarta_Sans',_sans-serif] relative bg-cover bg-center flex items-center justify-center px-6 py-10 transition-colors duration-300"
       style={{ backgroundImage: `url(${import.meta.env.BASE_URL}login1.jpg)` }}
     >
-      <div className="absolute inset-0 bg-[#F0F7FF]/70 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-[#F0F7FF]/70 dark:bg-slate-950/80 backdrop-blur-[2px]" />
 
       {/* Glassmorphism Card */}
-      <div className="w-full max-w-[440px] bg-white/65 backdrop-blur-xl rounded-[32px] border border-blue-100/80 p-8 shadow-xl relative z-10">
-        <h1 className="text-4xl font-extrabold text-[#2F6FDB] mb-8 text-center">Login</h1>
+      <div className="w-full max-w-[440px] bg-white/65 dark:bg-slate-900/70 backdrop-blur-xl rounded-[32px] border border-blue-100/80 dark:border-slate-800 p-8 shadow-xl relative z-10">
+        <h1 className="text-4xl font-extrabold text-[#2F6FDB] dark:text-cyan-400 mb-8 text-center uppercase tracking-tighter">Login</h1>
 
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#64748b]">Email</label>
+              <label className="text-sm font-semibold text-[#64748b] dark:text-slate-400">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="username@gmail.com"
                 required
-                className="w-full px-5 py-3.5 rounded-xl border border-blue-100 bg-white/90 text-[#1e293b] focus:ring-2 focus:ring-blue-300 outline-none transition-all"
+                className="w-full px-5 py-3.5 rounded-xl border border-blue-100 dark:border-slate-700 bg-white/90 dark:bg-slate-800 text-[#1e293b] dark:text-white focus:ring-2 focus:ring-blue-300 outline-none transition-all"
               />
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#64748b]">Password</label>
+              <label className="text-sm font-semibold text-[#64748b] dark:text-slate-400">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -68,17 +68,17 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   required
-                  className="w-full px-5 py-3.5 rounded-xl border border-blue-100 bg-white/90 text-[#1e293b] focus:ring-2 focus:ring-blue-300 outline-none transition-all"
+                  className="w-full px-5 py-3.5 rounded-xl border border-blue-100 dark:border-slate-700 bg-white/90 dark:bg-slate-800 text-[#1e293b] dark:text-white focus:ring-2 focus:ring-blue-300 outline-none transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400/80 hover:text-blue-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400/80 hover:text-blue-600 dark:text-slate-500"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
-              <button type="button" className="text-sm text-[#2F6FDB] font-medium hover:underline block ml-auto">
+              <button type="button" className="text-sm text-[#2F6FDB] dark:text-cyan-400 font-medium hover:underline block ml-auto">
                 Forgot Password?
               </button>
             </div>
@@ -91,7 +91,7 @@ const LoginPage = () => {
             {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full py-4 bg-[#2F6FDB] text-white rounded-xl font-bold text-lg hover:bg-[#255FC0] transition-all shadow-lg shadow-blue-200/60"
+              className="w-full py-4 bg-[#2F6FDB] dark:bg-cyan-500 text-white dark:text-slate-900 rounded-xl font-bold text-lg hover:bg-[#255FC0] dark:hover:bg-cyan-400 transition-all shadow-lg shadow-blue-200/60 dark:shadow-cyan-500/20"
             >
               Sign in
             </button>
@@ -100,28 +100,28 @@ const LoginPage = () => {
           {/* Divider */}
           <div className="relative my-6 text-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-blue-100"></div>
+              <div className="w-full border-t border-blue-100 dark:border-slate-800"></div>
             </div>
-            <span className="relative px-4 bg-transparent text-sm text-gray-400">or continue with</span>
+            <span className="relative px-4 bg-transparent text-sm text-gray-400 dark:text-slate-500">or continue with</span>
           </div>
 
           {/* Google Only */}
           <div className="flex justify-center mb-6">
             <button
               type="button"
-              className="w-full max-w-[360px] h-12 bg-white/90 rounded-full flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-all border border-blue-100"
+              className="w-full max-w-[360px] h-12 bg-white/90 dark:bg-slate-800 rounded-full flex items-center justify-center gap-3 shadow-md hover:shadow-lg transition-all border border-blue-100 dark:border-slate-700"
             >
               <FcGoogle size={20} />
-              <span className="text-sm font-semibold text-[#1e293b]">
+              <span className="text-sm font-semibold text-[#1e293b] dark:text-slate-200">
                 Continue with Google
               </span>
             </button>
           </div>
 
           {/* Register Only */}
-          <p className="text-center text-sm text-[#64748b]">
+          <p className="text-center text-sm text-[#64748b] dark:text-slate-400">
             Don't have an account yet?{' '}
-            <a href="#/register" className="text-[#2F6FDB] font-bold hover:underline">
+            <a href="#/register" className="text-[#2F6FDB] dark:text-cyan-400 font-bold hover:underline">
               Register
             </a>
           </p>
