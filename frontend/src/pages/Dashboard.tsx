@@ -1,11 +1,8 @@
 import { FaHeartbeat, FaChevronRight } from 'react-icons/fa';
 import PatientNavbar from '../components/PatientNavbar';
-import { useAuth } from '../auth/AuthContext';
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const safeUser = user ?? { firstName: 'User', lastName: '' };
-  const userName = `${safeUser.firstName} ${safeUser.lastName}`.trim() || 'User';
+  const userName = 'User';
 
   const uploadCategories = [
     {

@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import PatientNavbar from "../components/PatientNavbar";
-import { useAuth } from "../auth/AuthContext";
-import { createRecord, deleteRecord, listRecords, type RecordItem } from "../api/recordsApi";
 
 interface UploadedFile {
   id: string;
@@ -13,7 +11,6 @@ interface UploadedFile {
 }
 
 const UploadRecords: React.FC = () => {
-  const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,6 +18,7 @@ const UploadRecords: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const STORAGE_KEY = "bonescan_records_v1";
 
   /* ---------------- FORMATTERS ---------------- */
 
@@ -46,14 +44,10 @@ const UploadRecords: React.FC = () => {
     return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   };
 
-  const recordToRow = (record: RecordItem): UploadedFile => ({
-    id: record.id,
-    name: record.name,
-    category: record.category,
-    size: record.size ? `${(record.size / (1024 * 1024)).toFixed(1)} MB` : "-",
-    status: record.status,
-    uploadDate: formatDate(record.createdAt),
-  });
+  const toSizeLabel = (value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return "-";
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   /* ---------------- X-RAY CHECK ---------------- */
 
@@ -79,18 +73,21 @@ const UploadRecords: React.FC = () => {
 
     const load = async () => {
       setIsLoading(true);
-      const res = await listRecords();
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? (JSON.parse(raw) as UploadedFile[]) : [];
 
-      if (!active) return;
+        if (!active) return;
 
-      setIsLoading(false);
+        setIsLoading(false);
 
-      if (!res.ok) {
-        setUploadError(res.error);
-        return;
+        setFiles(parsed);
+      } catch (error) {
+        if (!active) return;
+        setIsLoading(false);
+        setUploadError(error instanceof Error ? error.message : "Failed to load records");
       }
 
-      setFiles(res.data.records.map(recordToRow));
     };
 
     load();
@@ -125,18 +122,24 @@ const UploadRecords: React.FC = () => {
         continue;
       }
 
-      const res = await createRecord({
+      const record: UploadedFile = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         name: file.name,
         category: "X-Ray",
-        status: "Verified",
-        size: file.size,
-      });
+        status: "Verified" as const,
+        size: toSizeLabel(file.size),
+        uploadDate: formatDate(new Date()),
+      };
 
-      if (res.ok) {
-        setFiles(prev => [recordToRow(res.data.record), ...prev]);
-      } else {
-        setUploadError(res.error);
-      }
+      setFiles(prev => {
+        const next = [record, ...prev];
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // ignore storage errors
+        }
+        return next;
+      });
     }
   };
 
@@ -161,14 +164,15 @@ const UploadRecords: React.FC = () => {
   /* ---------------- DELETE RECORD ---------------- */
 
   const handleDelete = async (id: string) => {
-    const res = await deleteRecord(id);
-
-    if (!res.ok) {
-      setUploadError(res.error);
-      return;
-    }
-
-    setFiles(prev => prev.filter(file => file.id !== id));
+    setFiles(prev => {
+      const next = prev.filter(file => file.id !== id);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
 
   /* ---------------- STORAGE OVERVIEW ---------------- */
@@ -199,11 +203,9 @@ const UploadRecords: React.FC = () => {
               Securely store and manage your clinical documentation and imaging.
             </p>
 
-            {user?.lastLogin && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-                Last login: {formatDateTime(user.lastLogin)}
-              </p>
-            )}
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+              Last update: {formatDateTime(currentTime)}
+            </p>
           </div>
 
           <div className="flex gap-3">
