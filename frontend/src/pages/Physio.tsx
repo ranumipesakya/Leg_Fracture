@@ -51,58 +51,6 @@ const Physio: React.FC = () => {
     offeringsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const sectionStyle: React.CSSProperties = {
-    width: "100%",
-    height: "calc(100vh - 72px)",
-    minHeight: "500px",
-    backgroundImage: "url('/physio.webp')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    display: "flex",
-    alignItems: "center",
-    position: "relative",
-    fontFamily: "Arial, sans-serif",
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    background:
-      "linear-gradient(to right, rgba(0,0,0,0.75), rgba(0,0,0,0.45), rgba(0,0,0,0.1))",
-    display: "flex",
-    alignItems: "center",
-  };
-
-  const contentStyle: React.CSSProperties = {
-    marginLeft: "80px",
-    color: "white",
-    maxWidth: "500px",
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: "64px",
-    fontWeight: 300,
-    lineHeight: "1.2",
-    margin: 0,
-  };
-
-  const boldStyle: React.CSSProperties = {
-    fontWeight: 800,
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    marginTop: "30px",
-    padding: "14px 32px",
-    backgroundColor: "#4A90FF",
-    border: "none",
-    borderRadius: "30px",
-    fontSize: "20px",
-    fontWeight: "bold",
-    color: "white",
-    cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
-  };
-
   const getCardOffset = (index: number) => {
     if (index === 0) {
       return "md:translate-y-12 md:-translate-x-4";
@@ -117,18 +65,65 @@ const Physio: React.FC = () => {
     <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <PatientNavbar currentPage="physio" />
 
-      {/* Hero Section */}
-      <section style={sectionStyle}>
-        <div style={overlayStyle}>
-          <div style={contentStyle}>
-            <h1 style={titleStyle}>
-              Physiotherapy <br />
-              <span style={boldStyle}>for rapid recovery</span>
-            </h1>
+      {/* Header / Hero */}
+      <section className="relative overflow-hidden border-b border-blue-100 bg-[radial-gradient(circle_at_top_right,_#dbeafe_0%,_#eff6ff_45%,_#f8fafc_100%)] dark:border-slate-800 dark:bg-[radial-gradient(circle_at_top_right,_#0b2447_0%,_#0f172a_45%,_#020617_100%)]">
+        <div className="pointer-events-none absolute -top-20 -left-24 h-72 w-72 rounded-full bg-cyan-300/30 blur-3xl dark:bg-cyan-500/20" />
+        <div className="pointer-events-none absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-blue-400/30 blur-3xl dark:bg-blue-600/20" />
 
-            <button style={buttonStyle} onClick={scrollToOfferings}>
-              Get Started Now
-            </button>
+        <div className="relative container mx-auto px-6 py-16 md:py-20">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/70 bg-white/80 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm dark:border-cyan-700/60 dark:bg-slate-900/70 dark:text-cyan-300">
+                Physiotherapy Care
+              </div>
+
+              <h1 className="mt-6 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
+                Stronger Recovery
+                <span className="block text-[#2168d8] dark:text-cyan-300">Without the Guesswork</span>
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-sm text-slate-600 sm:text-base md:text-lg dark:text-slate-300">
+                Structured physiotherapy routines for post-surgery rehab, fall-related injuries, and chronic leg pain.
+                Easy to follow, medically focused, and built to improve confidence step by step.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={scrollToOfferings}
+                  className="rounded-xl bg-[#2563eb] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 hover:bg-blue-700"
+                >
+                  Explore Programs
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-xl shadow-blue-100/70 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none sm:col-span-2">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-cyan-300">
+                  Recovery Summary
+                </p>
+                <p className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+                  3 Focused Programs
+                </p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  Choose based on your condition and follow a guided path from gentle movement to stable strength.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-lg shadow-blue-100/60 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">5-10 min</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                  per session
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-lg shadow-blue-100/60 dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-none">
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">Stepwise</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                  progression
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
