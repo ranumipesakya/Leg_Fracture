@@ -6,8 +6,15 @@ interface UploadedFile {
   name: string;
   category: string;
   size: string;
-  status: "Uploaded" | "Processing" | "Verified";
+  status: "Pending" | "Processing" | "Fracture" | "No Fracture";
   uploadDate: string;
+}
+
+interface PredictionResponse {
+  ok: boolean;
+  label?: "Fracture" | "No Fracture";
+  confidence?: number;
+  error?: string;
 }
 
 const UploadRecords: React.FC = () => {
@@ -19,6 +26,23 @@ const UploadRecords: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const STORAGE_KEY = "bonescan_records_v1";
+
+  const saveRecords = (next: UploadedFile[]) => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const normalizeStatus = (status: unknown): UploadedFile["status"] => {
+    const value = typeof status === "string" ? status.trim().toLowerCase() : "";
+
+    if (value === "processing") return "Processing";
+    if (value === "fracture") return "Fracture";
+    if (value === "no fracture" || value === "no_fracture" || value === "no-fracture") return "No Fracture";
+    return "Pending";
+  };
 
   /* ---------------- FORMATTERS ---------------- */
 
@@ -76,12 +100,15 @@ const UploadRecords: React.FC = () => {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         const parsed = raw ? (JSON.parse(raw) as UploadedFile[]) : [];
+        const normalized = parsed.map((item) => ({
+          ...item,
+          status: normalizeStatus(item.status),
+        }));
 
         if (!active) return;
 
         setIsLoading(false);
-
-        setFiles(parsed);
+        setFiles(normalized);
       } catch (error) {
         if (!active) return;
         setIsLoading(false);
@@ -112,6 +139,43 @@ const UploadRecords: React.FC = () => {
 
   const handleDragLeave = () => setIsDragging(false);
 
+  const toDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+
+  const predictWithSystemModel = async (file: File): Promise<"Fracture" | "No Fracture"> => {
+    const fileData = await toDataUrl(file);
+    const apiBase = (import.meta as ImportMeta & { env: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL;
+    const endpoint = `${apiBase ?? ""}/api/predict`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        mimeType: file.type,
+        fileData,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Prediction request failed (${response.status})`);
+    }
+
+    const data = (await response.json()) as PredictionResponse;
+    if (!data.ok || !data.label) {
+      throw new Error(data.error || "Prediction failed");
+    }
+
+    return data.label;
+  };
+
   const processFiles = async (selected: File[]) => {
     setUploadError(null);
 
@@ -126,20 +190,36 @@ const UploadRecords: React.FC = () => {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         name: file.name,
         category: "X-Ray",
-        status: "Verified" as const,
+        status: "Processing",
         size: toSizeLabel(file.size),
         uploadDate: formatDate(new Date()),
       };
 
       setFiles(prev => {
         const next = [record, ...prev];
-        try {
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // ignore storage errors
-        }
+        saveRecords(next);
         return next;
       });
+
+      try {
+        const prediction = await predictWithSystemModel(file);
+        setFiles((prev) => {
+          const next = prev.map((item) =>
+            item.id === record.id ? { ...item, status: prediction } : item
+          );
+          saveRecords(next);
+          return next;
+        });
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "Prediction failed. Please try again.");
+        setFiles((prev) => {
+          const next = prev.map((item) =>
+            item.id === record.id ? { ...item, status: "Pending" } : item
+          );
+          saveRecords(next);
+          return next;
+        });
+      }
     }
   };
 
@@ -166,11 +246,7 @@ const UploadRecords: React.FC = () => {
   const handleDelete = async (id: string) => {
     setFiles(prev => {
       const next = prev.filter(file => file.id !== id);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore storage errors
-      }
+      saveRecords(next);
       return next;
     });
   };
@@ -192,7 +268,7 @@ const UploadRecords: React.FC = () => {
 
       {/* HEADER */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-12 pb-8">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between gap-4">
+        <div className="container mx-auto px-6">
 
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -208,29 +284,6 @@ const UploadRecords: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex gap-3">
-
-            <button className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
-              Suggest Physiotherapy
-            </button>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-[#4A90FF] rounded-lg hover:bg-blue-600"
-            >
-              Upload X-Ray Image
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              multiple
-              accept="image/*,.dcm,.dicom"
-              onChange={handleFileInput}
-            />
-
-          </div>
         </div>
       </header>
 
@@ -289,9 +342,10 @@ const UploadRecords: React.FC = () => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
               isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-            }`}
+            } cursor-pointer`}
           >
 
             <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
@@ -302,12 +356,32 @@ const UploadRecords: React.FC = () => {
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Upload clinical files
+              Upload X-Ray Image
             </h3>
 
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-              Drag and drop your X-ray image here
+              Select an X-ray image file to add it to your records.
             </p>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+              className="mt-5 px-5 py-2.5 text-sm font-semibold text-white bg-[#4A90FF] rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Upload X-Ray Image
+            </button>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              multiple
+              accept="image/*,.dcm,.dicom"
+              onChange={handleFileInput}
+            />
 
           </div>
 
@@ -350,7 +424,17 @@ const UploadRecords: React.FC = () => {
                       <td className="text-center">{file.uploadDate}</td>
 
                       <td className="text-center">
-                        <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded text-xs">
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-semibold ${
+                            file.status === "Fracture"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : file.status === "No Fracture"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : file.status === "Processing"
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          }`}
+                        >
                           {file.status}
                         </span>
                       </td>

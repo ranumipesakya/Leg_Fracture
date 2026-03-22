@@ -1,9 +1,4 @@
-import { FaSun, FaMoon } from 'react-icons/fa';
-import { useTheme } from './ThemeContext';
-
 const Navbar = () => {
-  const { theme, toggleTheme } = useTheme();
-
   return (
     <nav className="flex justify-between items-center px-8 py-4 bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       {/* Left side: Logo and Name */}
@@ -16,16 +11,7 @@ const Navbar = () => {
         </span>
       </div>
 
-      {/* Right side: Auth Buttons & Theme Toggle */}
-        <div className="flex items-center gap-6">
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 text-[#3B82F6] dark:text-cyan-400 hover:shadow-md transition-all"
-            aria-label="Toggle Theme"
-          >
-            {theme === 'light' ? <FaMoon size={18} /> : <FaSun size={18} />}
-          </button>
-      </div>
+      <div />
     </nav>
   );
 };

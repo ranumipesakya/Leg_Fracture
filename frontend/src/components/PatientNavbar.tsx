@@ -1,14 +1,9 @@
-import { FaSun, FaMoon } from 'react-icons/fa';
-import { useTheme } from './ThemeContext';
-
 interface PatientNavbarProps {
   currentPage?: string;
   onNavigate?: (page: string) => void;
 }
 
 const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
-  const { theme, toggleTheme } = useTheme();
-
   const navLinks = [
     { label: 'Physiotherapy', page: 'physio' },
     { label: 'Upload X-Ray', page: 'upload' },
@@ -46,17 +41,7 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
         ))}
       </div>
 
-      {/* Right: Theme Toggle */}
-      <div className="flex items-center gap-6">
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 text-[#3B82F6] dark:text-cyan-400 hover:shadow-md transition-all"
-          aria-label="Toggle Theme"
-        >
-          {theme === 'light' ? <FaMoon size={18} /> : <FaSun size={18} />}
-        </button>
-      </div>
+      <div />
     </nav>
   );
 };
