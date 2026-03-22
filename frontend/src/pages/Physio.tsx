@@ -66,15 +66,15 @@ const Physio: React.FC = () => {
       <PatientNavbar currentPage="physio" />
 
       {/* Header / Hero */}
-      <section className="relative overflow-hidden border-b border-blue-100 bg-[radial-gradient(circle_at_top_right,_#dbeafe_0%,_#eff6ff_45%,_#f8fafc_100%)] dark:border-slate-800 dark:bg-[radial-gradient(circle_at_top_right,_#0b2447_0%,_#0f172a_45%,_#020617_100%)]">
-        <div className="pointer-events-none absolute -top-20 -left-24 h-72 w-72 rounded-full bg-cyan-300/30 blur-3xl dark:bg-cyan-500/20" />
-        <div className="pointer-events-none absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-blue-400/30 blur-3xl dark:bg-blue-600/20" />
-
+      <section className="relative overflow-hidden border-b border-blue-100 bg-[#F0F7FF] dark:border-slate-800 dark:bg-slate-950">
         <div className="relative container mx-auto px-6 py-16 md:py-20">
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/70 bg-white/80 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm dark:border-cyan-700/60 dark:bg-slate-900/70 dark:text-cyan-300">
-                Physiotherapy Care
+              <div
+                aria-hidden="true"
+                className="pointer-events-none select-none opacity-0 inline-flex items-center gap-2 rounded-full border border-blue-300/70 bg-white/80 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-blue-700 shadow-sm dark:border-cyan-700/60 dark:bg-slate-900/70 dark:text-cyan-300"
+              >
+                &nbsp;
               </div>
 
               <h1 className="mt-6 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
