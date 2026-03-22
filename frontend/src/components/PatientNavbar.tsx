@@ -10,8 +10,8 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
   const { theme, toggleTheme } = useTheme();
 
   const navLinks = [
-    { label: 'Upload X-Ray', page: 'upload' },
     { label: 'Physiotherapy', page: 'physio' },
+    { label: 'Upload X-Ray', page: 'upload' },
   ];
 
   const navigate = (page: string) => {
