@@ -47,7 +47,7 @@ const Dashboard = () => {
               {uploadCategories.map((item, index) => (
                 <div 
                   key={index} 
-                  className={`group p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 hover:scale-[1.02] transition-all cursor-pointer ${index === 0 ? 'md:col-span-2' : ''}`}
+                  className={`group p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 transition-all cursor-pointer ${index === 0 ? 'md:col-span-2' : ''}`}
                   onClick={() => {
                     if (index === 0) window.location.hash = "/upload";
                     if (index === 2) window.location.hash = "/physio";

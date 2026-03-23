@@ -5,6 +5,7 @@ import Recovery1 from "./pages/recovery1";
 import Recovery2 from "./pages/recovery2";
 import Recovery3 from "./pages/recovery3";
 import UploadPage from "./pages/upload";
+import Chatbot from "./components/Chatbot";
 
 function getHashPath() {
   const hash = window.location.hash || "";
@@ -23,16 +24,22 @@ function App() {
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
 
-  if (path === "/dashboard") return <Dashboard />;
-  if (path === "/upload") return <UploadPage />;
-  if (path === "/physio") return <Physio />;
-  if (path === "/recovery1") return <Recovery1 />;
-  if (path === "/recovery2") return <Recovery2 />;
-  if (path === "/recovery3") return <Recovery3 />;
+  let page;
 
-  if (path === "/") return <Dashboard />;
+  if (path === "/dashboard") page = <Dashboard />;
+  else if (path === "/upload") page = <UploadPage />;
+  else if (path === "/physio") page = <Physio />;
+  else if (path === "/recovery1") page = <Recovery1 />;
+  else if (path === "/recovery2") page = <Recovery2 />;
+  else if (path === "/recovery3") page = <Recovery3 />;
+  else page = <Dashboard />;
 
-  return <Dashboard />;
+  return (
+    <>
+      {page}
+      <Chatbot />
+    </>
+  );
 }
 
 export default App;

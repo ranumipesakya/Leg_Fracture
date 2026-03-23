@@ -1,474 +1,607 @@
-import React, { useEffect, useRef, useState } from "react";
-import PatientNavbar from "../components/PatientNavbar";
+import { useState } from 'react';
+import axios from 'axios';
+import jsPDF from 'jspdf';
+import PatientNavbar from '../components/PatientNavbar';
+import {
+  Upload as UploadIcon,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  Download
+} from 'lucide-react';
 
-interface UploadedFile {
-  id: string;
-  name: string;
-  category: string;
-  size: string;
-  status: "Pending" | "Processing" | "Fracture" | "No Fracture";
-  uploadDate: string;
-}
+type PredictionResult = {
+  report_id: string;
+  generated_at: string;
+  is_xray: boolean;
+  message: string;
+  xray_confidence: number;
+  fracture_prediction: string | null;
+  fracture_confidence: number | null;
+  recommendation: string;
+};
 
-interface PredictionResponse {
-  ok: boolean;
-  label?: "Fracture" | "No Fracture";
-  confidence?: number;
-  error?: string;
-}
+const Upload = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [result, setResult] = useState<PredictionResult | null>(null);
+  const [loading, setLoading] = useState(false);
 
-const UploadRecords: React.FC = () => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    setResult(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const STORAGE_KEY = "bonescan_records_v1";
+    if (selectedFile) {
+      setPreview(URL.createObjectURL(selectedFile));
+    } else {
+      setPreview(null);
+    }
+  };
 
-  const saveRecords = (next: UploadedFile[]) => {
+  const handleAnalyze = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors
-    }
-  };
+      setLoading(true);
 
-  const normalizeStatus = (status: unknown): UploadedFile["status"] => {
-    const value = typeof status === "string" ? status.trim().toLowerCase() : "";
-
-    if (value === "processing") return "Processing";
-    if (value === "fracture") return "Fracture";
-    if (value === "no fracture" || value === "no_fracture" || value === "no-fracture") return "No Fracture";
-    return "Pending";
-  };
-
-  /* ---------------- FORMATTERS ---------------- */
-
-  const formatDate = (value: string | Date) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  };
-
-  const formatDateTime = (value: string | Date) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleString();
-  };
-  const formatOnlyDate = (value: string | Date) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  };
-  const formatOnlyTime = (value: string | Date) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  };
-
-  const toSizeLabel = (value: number) => {
-    if (!Number.isFinite(value) || value <= 0) return "-";
-    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  /* ---------------- X-RAY CHECK ---------------- */
-
-  const isXrayImage = (file: File) => {
-    const name = file.name.toLowerCase();
-    const ext = name.split(".").pop() ?? "";
-
-    if (ext === "dcm" || ext === "dicom") return true;
-
-    const isImage = ["jpg", "jpeg", "png"].includes(ext);
-    return isImage;
-  };
-
-  const isImagingCategory = (category: string) => {
-    const normalized = category.trim().toLowerCase();
-    return normalized === "x-ray" || normalized === "xray" || normalized === "imaging";
-  };
-
-  /* ---------------- LOAD RECORDS ---------------- */
-
-  useEffect(() => {
-    let active = true;
-
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        const parsed = raw ? (JSON.parse(raw) as UploadedFile[]) : [];
-        const normalized = parsed.map((item) => ({
-          ...item,
-          status: normalizeStatus(item.status),
-        }));
-
-        if (!active) return;
-
-        setIsLoading(false);
-        setFiles(normalized);
-      } catch (error) {
-        if (!active) return;
-        setIsLoading(false);
-        setUploadError(error instanceof Error ? error.message : "Failed to load records");
-      }
-
-    };
-
-    load();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const tick = () => setCurrentTime(new Date());
-    const id = window.setInterval(tick, 1000 * 30);
-    return () => window.clearInterval(id);
-  }, []);
-
-  /* ---------------- DRAG EVENTS ---------------- */
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => setIsDragging(false);
-
-  const toDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result ?? ""));
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
-
-  const predictWithSystemModel = async (file: File): Promise<"Fracture" | "No Fracture"> => {
-    const fileData = await toDataUrl(file);
-    const apiBase = (import.meta as ImportMeta & { env: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL;
-    const endpoint = `${apiBase ?? ""}/api/predict`;
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fileName: file.name,
-        mimeType: file.type,
-        fileData,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Prediction request failed (${response.status})`);
-    }
-
-    const data = (await response.json()) as PredictionResponse;
-    if (!data.ok || !data.label) {
-      throw new Error(data.error || "Prediction failed");
-    }
-
-    return data.label;
-  };
-
-  const processFiles = async (selected: File[]) => {
-    setUploadError(null);
-
-    for (const file of selected) {
-
-      if (!isXrayImage(file)) {
-        setUploadError("This is not a supported image type. Please upload a valid X-ray image.");
-        continue;
-      }
-
-      const record: UploadedFile = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        name: file.name,
-        category: "X-Ray",
-        status: "Processing",
-        size: toSizeLabel(file.size),
-        uploadDate: formatDate(new Date()),
-      };
-
-      setFiles(prev => {
-        const next = [record, ...prev];
-        saveRecords(next);
-        return next;
+      const response = await axios.post('http://localhost:5001/predict', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      try {
-        const prediction = await predictWithSystemModel(file);
-        setFiles((prev) => {
-          const next = prev.map((item) =>
-            item.id === record.id ? { ...item, status: prediction } : item
-          );
-          saveRecords(next);
-          return next;
-        });
-      } catch (error) {
-        setUploadError(error instanceof Error ? error.message : "Prediction failed. Please try again.");
-        setFiles((prev) => {
-          const next = prev.map((item) =>
-            item.id === record.id ? { ...item, status: "Pending" } : item
-          );
-          saveRecords(next);
-          return next;
-        });
-      }
+      setResult(response.data);
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Prediction failed');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    await processFiles(droppedFiles);
+  const resetAll = () => {
+    setFile(null);
+    setPreview(null);
+    setResult(null);
   };
 
-  /* ---------------- INPUT UPLOAD ---------------- */
+ const generatePdfReport = async () => {
+  if (!result || !preview) {
+    alert('Please analyze an image first.');
+    return;
+  }
 
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files ?? []);
-    if (!selected.length) return;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-    await processFiles(selected);
-    e.target.value = "";
+  const isValidXray = result.is_xray === true;
+  const hasFracture = result.fracture_prediction === 'Fractured';
+
+  // Colors
+  const navy = [10, 25, 47];
+  const blue = [37, 99, 235];
+  const lightBlue = [239, 246, 255];
+  const red = [220, 38, 38];
+  const lightRed = [254, 242, 242];
+  const green = [22, 163, 74];
+  const lightGreen = [240, 253, 244];
+  const amber = [217, 119, 6];
+  const lightAmber = [255, 251, 235];
+  const gray = [107, 114, 128];
+  const lightGray = [243, 244, 246];
+  const dark = [17, 24, 39];
+
+  // Helpers
+  const drawRoundedBox = (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    fillColor: number[],
+    radius = 3
+  ) => {
+    doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+    doc.roundedRect(x, y, w, h, radius, radius, 'F');
   };
 
-  /* ---------------- DELETE RECORD ---------------- */
+  const addLabelValue = (
+    label: string,
+    value: string,
+    x: number,
+    y: number,
+    labelWidth = 42
+  ) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text(label, x, y);
 
-  const handleDelete = async (id: string) => {
-    setFiles(prev => {
-      const next = prev.filter(file => file.id !== id);
-      saveRecords(next);
-      return next;
-    });
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(value, x + labelWidth, y);
   };
 
-  /* ---------------- STORAGE OVERVIEW ---------------- */
+  // Background
+  doc.setFillColor(248, 250, 252);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-  const reportCount = files.filter(file => file.category.toLowerCase() === "report").length;
-  const imagingCount = files.filter(file => isImagingCategory(file.category)).length;
+  // Top header
+  doc.setFillColor(navy[0], navy[1], navy[2]);
+  doc.rect(0, 0, pageWidth, 32, 'F');
 
-  const totalCount = files.length || 1;
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('BoneScan AI', 14, 14);
 
-  const reportPercent = Math.round((reportCount / totalCount) * 100);
-  const imagingPercent = Math.round((imagingCount / totalCount) * 100);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('AI-Assisted Radiology Screening Report', 14, 21);
+
+  // Report badge right
+  doc.setFillColor(blue[0], blue[1], blue[2]);
+  doc.roundedRect(pageWidth - 52, 9, 38, 10, 3, 3, 'F');
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(result.report_id, pageWidth - 45, 15.5);
+
+  // Main white container
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(10, 38, pageWidth - 20, 235, 5, 5, 'F');
+
+  // Section: Patient / Scan Info
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  doc.text('Report Information', 18, 50);
+
+  drawRoundedBox(16, 55, pageWidth - 32, 32, lightGray);
+
+  addLabelValue('Generated At', result.generated_at, 20, 65);
+  addLabelValue('Patient/User', 'Guest User', 20, 73);
+  addLabelValue('Scan Type', 'X-Ray Image', 20, 81);
+
+  // Status box
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  doc.text('Analysis Summary', 18, 100);
+
+  let statusBg = lightAmber;
+  let statusText = amber;
+  let verdict = 'Invalid Input';
+
+  if (isValidXray && hasFracture) {
+    statusBg = lightRed;
+    statusText = red;
+    verdict = 'Fracture Detected';
+  } else if (isValidXray && !hasFracture) {
+    statusBg = lightGreen;
+    statusText = green;
+    verdict = 'No Fracture Detected';
+  }
+
+  drawRoundedBox(16, 105, pageWidth - 32, 22, statusBg);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(statusText[0], statusText[1], statusText[2]);
+  doc.text(verdict, 20, 119);
+
+  // Confidence cards
+  drawRoundedBox(16, 135, 86, 32, [248, 250, 252]);
+  drawRoundedBox(108, 135, 86, 32, [248, 250, 252]);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(gray[0], gray[1], gray[2]);
+  doc.text('X-RAY RECOGNITION', 20, 143);
+
+  doc.setFontSize(18);
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  doc.text(`${(result.xray_confidence * 100).toFixed(1)}%`, 20, 154);
+
+  doc.setDrawColor(220, 224, 230);
+  doc.setLineWidth(1.8);
+  doc.line(20, 160, 92, 160);
+  doc.setDrawColor(blue[0], blue[1], blue[2]);
+  doc.line(20, 160, 20 + 72 * result.xray_confidence, 160);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(gray[0], gray[1], gray[2]);
+  doc.text('FRACTURE CONFIDENCE', 112, 143);
+
+  doc.setFontSize(18);
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  doc.text(
+    `${
+      result.fracture_confidence !== null
+        ? (result.fracture_confidence * 100).toFixed(1) + '%'
+        : '--'
+    }`,
+    112,
+    154
+  );
+
+  doc.setDrawColor(220, 224, 230);
+  doc.setLineWidth(1.8);
+  doc.line(112, 160, 184, 160);
+
+  let confidenceBarColor = gray;
+  if (isValidXray && hasFracture) confidenceBarColor = red;
+  if (isValidXray && !hasFracture) confidenceBarColor = green;
+
+  const fractureBarValue = result.fracture_confidence ?? 0;
+  doc.setDrawColor(confidenceBarColor[0], confidenceBarColor[1], confidenceBarColor[2]);
+  doc.line(112, 160, 112 + 72 * fractureBarValue, 160);
+
+  // Recommendation section
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  doc.text('Clinical Recommendation', 18, 180);
+
+  drawRoundedBox(16, 185, pageWidth - 32, 28, [249, 250, 251]);
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(dark[0], dark[1], dark[2]);
+  const recommendationLines = doc.splitTextToSize(result.recommendation, pageWidth - 42);
+  doc.text(recommendationLines, 20, 194);
+
+  // Image section
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Uploaded Scan Preview', 18, 224);
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = preview;
+
+  img.onload = () => {
+    const maxWidth = 80;
+    const maxHeight = 55;
+
+    let imgWidth = img.width;
+    let imgHeight = img.height;
+
+    const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+    imgWidth *= ratio;
+    imgHeight *= ratio;
+
+    drawRoundedBox(16, 229, 90, 62, [245, 247, 250]);
+    doc.addImage(
+      img,
+      'JPEG',
+      21,
+      233,
+      imgWidth,
+      imgHeight
+    );
+
+    // Right side mini summary
+    drawRoundedBox(112, 229, 82, 62, [248, 250, 252]);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text('RESULT', 116, 240);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(verdict, 116, 247);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text('VALID X-RAY', 116, 257);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(isValidXray ? 'Yes' : 'No', 116, 264);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text('REPORT ID', 116, 274);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(result.report_id, 116, 281);
+
+    // Footer
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, 285, pageWidth, 12, 'F');
+
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(
+      'Disclaimer: This report is generated by an AI-assisted screening system and is not a final medical diagnosis.',
+      14,
+      292
+    );
+
+    doc.save(`${result.report_id}_BoneScan_Report.pdf`);
+  };
+};
+
+  const isValidXray = result?.is_xray === true;
+  const hasFracture = result?.fracture_prediction === 'Fractured';
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',sans-serif] transition-colors duration-300">
-
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <PatientNavbar currentPage="upload" />
 
-      {/* HEADER */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-12 pb-8">
-        <div className="container mx-auto px-6">
-
+      <main className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
+        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
-              Medical Records Vault
-            </h1>
-
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Securely store and manage your clinical documentation and imaging.
-            </p>
-
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-              Last update: {formatDateTime(currentTime)}
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">AI Diagnostics</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">
+              Upload radiological scans for instant neural-network analysis.
             </p>
           </div>
+        </header>
 
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-        {/* STORAGE OVERVIEW */}
-        <aside className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-
-          <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">
-            Storage Overview
-          </h3>
-
-          <div className="mb-6">
-            <div className="text-[11px] font-bold text-slate-400 uppercase mb-2">Current Time</div>
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Date: {formatOnlyDate(currentTime)}
-            </div>
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Time: {formatOnlyTime(currentTime)}
-            </div>
-          </div>
-
-          <div className="mb-4">
-
-            <div className="flex justify-between text-sm dark:text-slate-300">
-              <span>Reports</span>
-              <span>{reportCount}</span>
-            </div>
-
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded">
-              <div className="bg-blue-500 h-full" style={{ width: `${reportPercent}%` }} />
-            </div>
-
-          </div>
-
-          <div>
-
-            <div className="flex justify-between text-sm dark:text-slate-300">
-              <span>Imaging (X-Ray)</span>
-              <span>{imagingCount}</span>
-            </div>
-
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded">
-              <div className="bg-indigo-500 h-full" style={{ width: `${imagingPercent}%` }} />
-            </div>
-
-          </div>
-
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <div className="lg:col-span-3 space-y-8">
-
-          {/* DRAG DROP BOX */}
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
-              isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-            } cursor-pointer`}
-          >
-
-            <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-              </svg>
-            </div>
-
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Upload X-Ray Image
-            </h3>
-
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-              Select an X-ray image file to add it to your records.
-            </p>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-              className="mt-5 px-5 py-2.5 text-sm font-semibold text-white bg-[#4A90FF] rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Upload X-Ray Image
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              multiple
-              accept="image/*,.dcm,.dicom"
-              onChange={handleFileInput}
-            />
-
-          </div>
-
-          {/* RECORD TABLE */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border dark:border-slate-800 overflow-hidden">
-
-            <table className="w-full">
-
-              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase dark:text-slate-400">
-                <tr>
-                  <th className="px-6 py-4 text-left">Record Name</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4">Date Added</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody className="dark:text-slate-300">
-
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="p-6 text-slate-400">
-                      Loading records...
-                    </td>
-                  </tr>
-                ) : files.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="p-6 text-slate-400">
-                      No records uploaded yet
-                    </td>
-                  </tr>
-                ) : (
-                  files.map(file => (
-
-                    <tr key={file.id} className="border-t dark:border-slate-800">
-
-                      <td className="px-6 py-4">{file.name}</td>
-                      <td className="text-center">{file.category}</td>
-                      <td className="text-center">{file.uploadDate}</td>
-
-                      <td className="text-center">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${
-                            file.status === "Fracture"
-                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                              : file.status === "No Fracture"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : file.status === "Processing"
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                          }`}
-                        >
-                          {file.status}
-                        </span>
-                      </td>
-
-                      <td className="text-right px-6">
-                        <button
-                          onClick={() => handleDelete(file.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Remove
-                        </button>
-                      </td>
-
-                    </tr>
-
-                  ))
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* LEFT PANEL */}
+          <section className="lg:col-span-5 space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:border-slate-800 transition-all">
+              <label
+                className={`
+                  group relative flex flex-col items-center justify-center w-full min-h-[320px]
+                  border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300
+                  ${
+                    file
+                      ? 'border-blue-500 bg-blue-50/30'
+                      : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }
+                `}
+              >
+                {preview && (
+                  <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl">
+                    <img
+                      src={preview}
+                      className="w-full h-full object-cover opacity-40 group-hover:opacity-20 transition-opacity"
+                      alt="Preview"
+                    />
+                  </div>
                 )}
 
-              </tbody>
+                <div className="relative z-10 flex flex-col items-center text-center px-6">
+                  <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-2xl shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <UploadIcon className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="font-bold text-lg">
+                    {file ? file.name : 'Select X-Ray Scan'}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-6">
+                    PNG, JPG or JPEG supported
+                  </p>
+                  <span className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all flex items-center shadow-lg shadow-blue-200 dark:shadow-none">
+                    {file ? 'Replace Image' : 'Browse Files'}
+                  </span>
+                </div>
 
-            </table>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  aria-label="Upload X-ray image"
+                />
+              </label>
 
-            {uploadError && (
-              <div className="px-6 py-3 text-sm text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 border-t dark:border-slate-800">
-                {uploadError}
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleAnalyze}
+                  disabled={loading || !file}
+                  className="w-full h-12 bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-3 shadow-md"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Analyzing...
+                    </>
+                  ) : (
+                    'Analyze Scan'
+                  )}
+                </button>
+
+                <button
+                  onClick={generatePdfReport}
+                  disabled={!result}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Download size={18} />
+                  Download Report
+                </button>
               </div>
-            )}
+            </div>
 
-          </div>
+            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
+              <ShieldCheck className="text-emerald-600" size={20} />
+              <span className="text-xs text-emerald-800 dark:text-emerald-400 font-medium">
+                AI-assisted analysis interface
+              </span>
+            </div>
+          </section>
 
+          {/* RIGHT PANEL */}
+          <section className="lg:col-span-7">
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-slate-800 min-h-[480px] flex flex-col">
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-xl font-extrabold flex items-center gap-3">
+                  <FileText className="text-blue-600" />
+                  Analysis Results
+                </h2>
+                {result && (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Ref: {result.report_id}
+                  </span>
+                )}
+              </div>
+
+              {!result && !loading && (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-full mb-4">
+                    <CheckCircle size={32} className="opacity-20" />
+                  </div>
+                  <p className="text-sm font-medium">No scan analyzed yet.</p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                  <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                  <p className="text-blue-600 font-bold animate-pulse">
+                    Running Neural Inference...
+                  </p>
+                </div>
+              )}
+
+              {result && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div
+                    className={`p-6 rounded-2xl border-2 shadow-sm ${
+                      !isValidXray
+                        ? 'bg-amber-50 border-amber-200 text-amber-900'
+                        : hasFracture
+                        ? 'bg-red-50 border-red-200 text-red-900'
+                        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      {!isValidXray ? (
+                        <AlertCircle size={24} />
+                      ) : hasFracture ? (
+                        <AlertCircle size={24} />
+                      ) : (
+                        <CheckCircle size={24} />
+                      )}
+                      <h3 className="text-2xl font-black">
+                        {!isValidXray
+                          ? 'Invalid Input'
+                          : hasFracture
+                          ? 'Fracture Detected'
+                          : 'No Fracture Detected'}
+                      </h3>
+                    </div>
+
+                    <p className="text-sm font-medium opacity-80 leading-relaxed">
+                      {!isValidXray
+                        ? 'The uploaded image was not recognized as an X-ray scan. Please upload a valid radiological image.'
+                        : hasFracture
+                        ? 'Potential fracture detected. Please consult an orthopedic specialist for medical confirmation.'
+                        : 'No fracture was detected by the AI screening model in this image. A doctor should still review the scan.'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ConfidenceCard
+                      label="X-Ray Recognition Confidence"
+                      value={result.xray_confidence}
+                      status={isValidXray ? 'Valid' : 'Invalid'}
+                      variant={isValidXray ? 'blue' : 'amber'}
+                    />
+
+                    <ConfidenceCard
+                      label="Fracture Prediction Confidence"
+                      value={isValidXray ? result.fracture_confidence : null}
+                      status={
+                        isValidXray
+                          ? hasFracture
+                            ? 'Positive'
+                            : 'Negative'
+                          : 'N/A'
+                      }
+                      variant={
+                        isValidXray
+                          ? hasFracture
+                            ? 'red'
+                            : 'emerald'
+                          : 'slate'
+                      }
+                    />
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs uppercase tracking-widest font-black text-slate-400 mb-2">
+                      Recommendation
+                    </p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">
+                      {result.recommendation}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={resetAll}
+                    className="w-full h-11 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw size={16} />
+                    Process Another Scan
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </main>
     </div>
   );
 };
 
-export default UploadRecords;
+const ConfidenceCard = ({
+  label,
+  value,
+  status,
+  variant = 'blue'
+}: {
+  label: string;
+  value: number | null | undefined;
+  status: string;
+  variant: 'blue' | 'emerald' | 'red' | 'amber' | 'slate';
+}) => {
+  const safeValue = typeof value === 'number' && !isNaN(value) ? value : null;
+
+  const colors = {
+    blue: 'text-blue-600 bg-blue-50 dark:bg-blue-900/10',
+    emerald: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10',
+    red: 'text-red-600 bg-red-50 dark:bg-red-900/10',
+    amber: 'text-amber-600 bg-amber-50 dark:bg-amber-900/10',
+    slate: 'text-slate-400 bg-slate-50 dark:bg-slate-800/50'
+  };
+
+  const barColor = {
+    blue: 'bg-blue-500',
+    emerald: 'bg-emerald-500',
+    red: 'bg-red-500',
+    amber: 'bg-amber-500',
+    slate: 'bg-slate-400'
+  };
+
+  return (
+    <div className="p-5 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl transition-all">
+      <p className="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-3">
+        {label}
+      </p>
+
+      <div className="flex items-end justify-between">
+        <h4 className="text-3xl font-black tracking-tighter">
+          {safeValue !== null ? `${(safeValue * 100).toFixed(1)}%` : '--'}
+        </h4>
+        <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${colors[variant]}`}>
+          {status}
+        </span>
+      </div>
+
+      <div className="mt-3 w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full transition-all duration-1000 ease-out ${barColor[variant]}`}
+          style={{ width: `${safeValue ? safeValue * 100 : 0}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Upload;

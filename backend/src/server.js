@@ -1,10 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 
 dotenv.config();
 
 const app = express();
+const upload = multer({ dest: 'uploads/' });
 
 app.use(
   cors({
@@ -23,36 +28,37 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/predict', (req, res) => {
-  const { fileName = '', mimeType = '', fileData = '' } = req.body || {};
+app.post('/api/predict', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
 
-  if (!fileData || typeof fileData !== 'string') {
-    return res.status(400).json({
-      ok: false,
-      error: 'Missing fileData',
+    const form = new FormData();
+    form.append('image', fs.createReadStream(req.file.path));
+
+    const response = await axios.post('http://127.0.0.1:5001/predict', form, {
+      headers: form.getHeaders(),
+    });
+
+    fs.unlinkSync(req.file.path);
+
+    res.json(response.data);
+  } catch (error) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    console.error(
+      'Prediction error:',
+      error.response?.data || error.message
+    );
+
+    res.status(500).json({
+      error: 'Prediction failed',
+      details: error.response?.data || error.message,
     });
   }
-
-  // Temporary server-side prediction logic until real ML model is connected.
-  // Keeps response deterministic for the same input.
-  const seedText = `${fileName}|${mimeType}|${fileData.slice(0, 500)}`;
-  let hash = 0;
-  for (let i = 0; i < seedText.length; i += 1) {
-    hash = (hash * 31 + seedText.charCodeAt(i)) % 1000003;
-  }
-
-  const score = (hash % 1000) / 1000; // 0.000 - 0.999
-  const label = score >= 0.5 ? 'Fracture' : 'No Fracture';
-  const confidence =
-    label === 'Fracture'
-      ? Number((0.5 + score / 2).toFixed(3))
-      : Number((0.5 + (1 - score) / 2).toFixed(3));
-
-  return res.json({
-    ok: true,
-    label,
-    confidence,
-  });
 });
 
 const PORT = process.env.PORT || 5000;
