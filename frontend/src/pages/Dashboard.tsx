@@ -26,7 +26,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <PatientNavbar currentPage="dashboard" />
       
       <main className="max-w-7xl mx-auto px-6 py-10">

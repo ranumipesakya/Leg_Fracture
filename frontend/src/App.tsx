@@ -6,6 +6,7 @@ import Recovery2 from "./pages/recovery2";
 import Recovery3 from "./pages/recovery3";
 import UploadPage from "./pages/upload";
 import Chatbot from "./components/Chatbot";
+import Footer from "./components/Footer";
 
 function getHashPath() {
   const hash = window.location.hash || "";
@@ -35,10 +36,13 @@ function App() {
   else page = <Dashboard />;
 
   return (
-    <>
-      {page}
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-grow">
+        {page}
+      </div>
+      <Footer />
       <Chatbot />
-    </>
+    </div>
   );
 }
 

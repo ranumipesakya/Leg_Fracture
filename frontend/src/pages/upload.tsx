@@ -17,8 +17,10 @@ type PredictionResult = {
   report_id: string;
   generated_at: string;
   is_xray: boolean;
+  is_leg_xray: boolean | null;
   message: string;
   xray_confidence: number;
+  leg_confidence?: number | null;
   fracture_prediction: string | null;
   fracture_confidence: number | null;
   recommendation: string;
@@ -51,11 +53,11 @@ const Upload = () => {
     try {
       setLoading(true);
 
-      const response = await axios.post('http://localhost:5001/predict', formData, {
+      const response = await axios.post('http://localhost:5000/api/predict', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setResult(response.data);
+      setResult(response.data.prediction);
     } catch (error: any) {
       alert(error.response?.data?.error || 'Prediction failed');
     } finally {
@@ -69,267 +71,280 @@ const Upload = () => {
     setResult(null);
   };
 
- const generatePdfReport = async () => {
-  if (!result || !preview) {
-    alert('Please analyze an image first.');
-    return;
-  }
+  const generatePdfReport = async () => {
+    if (!result || !preview) {
+      alert('Please analyze an image first.');
+      return;
+    }
 
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-  const isValidXray = result.is_xray === true;
-  const hasFracture = result.fracture_prediction === 'Fractured';
+    const isValidXray = result.is_xray === true;
+    const isLegXray = result.is_leg_xray === true;
+    const hasFracture = result.fracture_prediction === 'Fractured';
 
-  // Colors
-  const navy = [10, 25, 47];
-  const blue = [37, 99, 235];
-  const lightBlue = [239, 246, 255];
-  const red = [220, 38, 38];
-  const lightRed = [254, 242, 242];
-  const green = [22, 163, 74];
-  const lightGreen = [240, 253, 244];
-  const amber = [217, 119, 6];
-  const lightAmber = [255, 251, 235];
-  const gray = [107, 114, 128];
-  const lightGray = [243, 244, 246];
-  const dark = [17, 24, 39];
+    const navy = [10, 25, 47];
+    const blue = [37, 99, 235];
+    const red = [220, 38, 38];
+    const lightRed = [254, 242, 242];
+    const green = [22, 163, 74];
+    const lightGreen = [240, 253, 244];
+    const amber = [217, 119, 6];
+    const lightAmber = [255, 251, 235];
+    const orange = [234, 88, 12];
+    const lightOrange = [255, 247, 237];
+    const gray = [107, 114, 128];
+    const lightGray = [243, 244, 246];
+    const dark = [17, 24, 39];
 
-  // Helpers
-  const drawRoundedBox = (
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    fillColor: number[],
-    radius = 3
-  ) => {
-    doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
-    doc.roundedRect(x, y, w, h, radius, radius, 'F');
-  };
+    const drawRoundedBox = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      fillColor: number[],
+      radius = 3
+    ) => {
+      doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+      doc.roundedRect(x, y, w, h, radius, radius, 'F');
+    };
 
-  const addLabelValue = (
-    label: string,
-    value: string,
-    x: number,
-    y: number,
-    labelWidth = 42
-  ) => {
+    const addLabelValue = (
+      label: string,
+      value: string,
+      x: number,
+      y: number,
+      labelWidth = 42
+    ) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text(label, x, y);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(value, x + labelWidth, y);
+    };
+
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    doc.setFillColor(navy[0], navy[1], navy[2]);
+    doc.rect(0, 0, pageWidth, 32, 'F');
+
+    doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text(label, x, y);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.text(value, x + labelWidth, y);
-  };
-
-  // Background
-  doc.setFillColor(248, 250, 252);
-  doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-  // Top header
-  doc.setFillColor(navy[0], navy[1], navy[2]);
-  doc.rect(0, 0, pageWidth, 32, 'F');
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('BoneScan AI', 14, 14);
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('AI-Assisted Radiology Screening Report', 14, 21);
-
-  // Report badge right
-  doc.setFillColor(blue[0], blue[1], blue[2]);
-  doc.roundedRect(pageWidth - 52, 9, 38, 10, 3, 3, 'F');
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text(result.report_id, pageWidth - 45, 15.5);
-
-  // Main white container
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(10, 38, pageWidth - 20, 235, 5, 5, 'F');
-
-  // Section: Patient / Scan Info
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  doc.text('Report Information', 18, 50);
-
-  drawRoundedBox(16, 55, pageWidth - 32, 32, lightGray);
-
-  addLabelValue('Generated At', result.generated_at, 20, 65);
-  addLabelValue('Patient/User', 'Guest User', 20, 73);
-  addLabelValue('Scan Type', 'X-Ray Image', 20, 81);
-
-  // Status box
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  doc.text('Analysis Summary', 18, 100);
-
-  let statusBg = lightAmber;
-  let statusText = amber;
-  let verdict = 'Invalid Input';
-
-  if (isValidXray && hasFracture) {
-    statusBg = lightRed;
-    statusText = red;
-    verdict = 'Fracture Detected';
-  } else if (isValidXray && !hasFracture) {
-    statusBg = lightGreen;
-    statusText = green;
-    verdict = 'No Fracture Detected';
-  }
-
-  drawRoundedBox(16, 105, pageWidth - 32, 22, statusBg);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(statusText[0], statusText[1], statusText[2]);
-  doc.text(verdict, 20, 119);
-
-  // Confidence cards
-  drawRoundedBox(16, 135, 86, 32, [248, 250, 252]);
-  drawRoundedBox(108, 135, 86, 32, [248, 250, 252]);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(gray[0], gray[1], gray[2]);
-  doc.text('X-RAY RECOGNITION', 20, 143);
-
-  doc.setFontSize(18);
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  doc.text(`${(result.xray_confidence * 100).toFixed(1)}%`, 20, 154);
-
-  doc.setDrawColor(220, 224, 230);
-  doc.setLineWidth(1.8);
-  doc.line(20, 160, 92, 160);
-  doc.setDrawColor(blue[0], blue[1], blue[2]);
-  doc.line(20, 160, 20 + 72 * result.xray_confidence, 160);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(gray[0], gray[1], gray[2]);
-  doc.text('FRACTURE CONFIDENCE', 112, 143);
-
-  doc.setFontSize(18);
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  doc.text(
-    `${
-      result.fracture_confidence !== null
-        ? (result.fracture_confidence * 100).toFixed(1) + '%'
-        : '--'
-    }`,
-    112,
-    154
-  );
-
-  doc.setDrawColor(220, 224, 230);
-  doc.setLineWidth(1.8);
-  doc.line(112, 160, 184, 160);
-
-  let confidenceBarColor = gray;
-  if (isValidXray && hasFracture) confidenceBarColor = red;
-  if (isValidXray && !hasFracture) confidenceBarColor = green;
-
-  const fractureBarValue = result.fracture_confidence ?? 0;
-  doc.setDrawColor(confidenceBarColor[0], confidenceBarColor[1], confidenceBarColor[2]);
-  doc.line(112, 160, 112 + 72 * fractureBarValue, 160);
-
-  // Recommendation section
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  doc.text('Clinical Recommendation', 18, 180);
-
-  drawRoundedBox(16, 185, pageWidth - 32, 28, [249, 250, 251]);
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(dark[0], dark[1], dark[2]);
-  const recommendationLines = doc.splitTextToSize(result.recommendation, pageWidth - 42);
-  doc.text(recommendationLines, 20, 194);
-
-  // Image section
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Uploaded Scan Preview', 18, 224);
-
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.src = preview;
-
-  img.onload = () => {
-    const maxWidth = 80;
-    const maxHeight = 55;
-
-    let imgWidth = img.width;
-    let imgHeight = img.height;
-
-    const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
-    imgWidth *= ratio;
-    imgHeight *= ratio;
-
-    drawRoundedBox(16, 229, 90, 62, [245, 247, 250]);
-    doc.addImage(
-      img,
-      'JPEG',
-      21,
-      233,
-      imgWidth,
-      imgHeight
-    );
-
-    // Right side mini summary
-    drawRoundedBox(112, 229, 82, 62, [248, 250, 252]);
+    doc.setFontSize(22);
+    doc.text('BoneScan AI', 14, 14);
 
     doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('AI-Assisted Radiology Screening Report', 14, 21);
+
+    doc.setFillColor(blue[0], blue[1], blue[2]);
+    doc.roundedRect(pageWidth - 52, 9, 38, 10, 3, 3, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(result.report_id, pageWidth - 45, 15.5);
+
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(10, 38, pageWidth - 20, 235, 5, 5, 'F');
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text('Report Information', 18, 50);
+
+    drawRoundedBox(16, 55, pageWidth - 32, 32, lightGray);
+
+    addLabelValue('Generated At', result.generated_at, 20, 65);
+    addLabelValue('Patient/User', 'Guest User', 20, 73);
+    addLabelValue('Scan Type', 'X-Ray Image', 20, 81);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text('Analysis Summary', 18, 100);
+
+    let statusBg = lightAmber;
+    let statusText = amber;
+    let verdict = 'Invalid X-Ray Input';
+
+    if (!isValidXray) {
+      statusBg = lightAmber;
+      statusText = amber;
+      verdict = 'Invalid X-Ray Input';
+    } else if (!isLegXray) {
+      statusBg = lightOrange;
+      statusText = orange;
+      verdict = 'Not a Leg X-Ray';
+    } else if (hasFracture) {
+      statusBg = lightRed;
+      statusText = red;
+      verdict = 'Fracture Detected';
+    } else {
+      statusBg = lightGreen;
+      statusText = green;
+      verdict = 'No Fracture Detected';
+    }
+
+    drawRoundedBox(16, 105, pageWidth - 32, 22, statusBg);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(statusText[0], statusText[1], statusText[2]);
+    doc.text(verdict, 20, 119);
+
+    drawRoundedBox(16, 135, 56, 32, [248, 250, 252]);
+    drawRoundedBox(77, 135, 56, 32, [248, 250, 252]);
+    drawRoundedBox(138, 135, 56, 32, [248, 250, 252]);
+
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text('RESULT', 116, 240);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.text(verdict, 116, 247);
+    doc.text('X-RAY CONFIDENCE', 20, 143);
 
+    doc.setFontSize(16);
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(`${(result.xray_confidence * 100).toFixed(1)}%`, 20, 154);
+
+    doc.setDrawColor(220, 224, 230);
+    doc.setLineWidth(1.8);
+    doc.line(20, 160, 66, 160);
+    doc.setDrawColor(blue[0], blue[1], blue[2]);
+    doc.line(20, 160, 20 + 46 * result.xray_confidence, 160);
+
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text('VALID X-RAY', 116, 257);
-    doc.setFont('helvetica', 'normal');
+    doc.text('LEG CONFIDENCE', 81, 143);
+
+    doc.setFontSize(16);
     doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.text(isValidXray ? 'Yes' : 'No', 116, 264);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(gray[0], gray[1], gray[2]);
-    doc.text('REPORT ID', 116, 274);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(dark[0], dark[1], dark[2]);
-    doc.text(result.report_id, 116, 281);
-
-    // Footer
-    doc.setFillColor(navy[0], navy[1], navy[2]);
-    doc.rect(0, 285, pageWidth, 12, 'F');
-
-    doc.setFontSize(8.5);
-    doc.setTextColor(255, 255, 255);
     doc.text(
-      'Disclaimer: This report is generated by an AI-assisted screening system and is not a final medical diagnosis.',
-      14,
-      292
+      `${result.leg_confidence !== null && result.leg_confidence !== undefined
+        ? (result.leg_confidence * 100).toFixed(1) + '%'
+        : '--'
+      }`,
+      81,
+      154
     );
 
-    doc.save(`${result.report_id}_BoneScan_Report.pdf`);
+    doc.setDrawColor(220, 224, 230);
+    doc.setLineWidth(1.8);
+    doc.line(81, 160, 127, 160);
+    doc.setDrawColor(isLegXray ? blue[0] : orange[0], isLegXray ? blue[1] : orange[1], isLegXray ? blue[2] : orange[2]);
+    doc.line(81, 160, 81 + 46 * (result.leg_confidence ?? 0), 160);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+    doc.text('FRACTURE CONFIDENCE', 142, 143);
+
+    doc.setFontSize(16);
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text(
+      `${result.fracture_confidence !== null
+        ? (result.fracture_confidence * 100).toFixed(1) + '%'
+        : '--'
+      }`,
+      142,
+      154
+    );
+
+    doc.setDrawColor(220, 224, 230);
+    doc.setLineWidth(1.8);
+    doc.line(142, 160, 188, 160);
+
+    let fractureBarColor = gray;
+    if (isValidXray && isLegXray && hasFracture) fractureBarColor = red;
+    if (isValidXray && isLegXray && !hasFracture) fractureBarColor = green;
+
+    const fractureBarValue = result.fracture_confidence ?? 0;
+    doc.setDrawColor(fractureBarColor[0], fractureBarColor[1], fractureBarColor[2]);
+    doc.line(142, 160, 142 + 46 * fractureBarValue, 160);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    doc.text('Clinical Recommendation', 18, 180);
+
+    drawRoundedBox(16, 185, pageWidth - 32, 28, [249, 250, 251]);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(dark[0], dark[1], dark[2]);
+    const recommendationLines = doc.splitTextToSize(result.recommendation, pageWidth - 42);
+    doc.text(recommendationLines, 20, 194);
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Uploaded Scan Preview', 18, 224);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = preview;
+
+    img.onload = () => {
+      const maxWidth = 80;
+      const maxHeight = 55;
+
+      let imgWidth = img.width;
+      let imgHeight = img.height;
+
+      const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+      imgWidth *= ratio;
+      imgHeight *= ratio;
+
+      drawRoundedBox(16, 229, 90, 62, [245, 247, 250]);
+      doc.addImage(img, 'JPEG', 21, 233, imgWidth, imgHeight);
+
+      drawRoundedBox(112, 229, 82, 62, [248, 250, 252]);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text('RESULT', 116, 240);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(verdict, 116, 247);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text('VALID X-RAY', 116, 257);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(isValidXray ? 'Yes' : 'No', 116, 264);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(gray[0], gray[1], gray[2]);
+      doc.text('LEG X-RAY', 116, 274);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(dark[0], dark[1], dark[2]);
+      doc.text(isLegXray ? 'Yes' : 'No', 116, 281);
+
+      doc.setFillColor(navy[0], navy[1], navy[2]);
+      doc.rect(0, 285, pageWidth, 12, 'F');
+
+      doc.setFontSize(8.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(
+        'Disclaimer: This report is generated by an AI-assisted screening system and is not a final medical diagnosis.',
+        14,
+        292
+      );
+
+      doc.save(`${result.report_id}_BoneScan_Report.pdf`);
+    };
   };
-};
 
   const isValidXray = result?.is_xray === true;
+  const isLegXray = result?.is_leg_xray === true;
   const hasFracture = result?.fracture_prediction === 'Fractured';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <PatientNavbar currentPage="upload" />
 
       <main className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
@@ -343,7 +358,6 @@ const Upload = () => {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* LEFT PANEL */}
           <section className="lg:col-span-5 space-y-6">
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:border-slate-800 transition-all">
               <label
@@ -426,7 +440,6 @@ const Upload = () => {
             </div>
           </section>
 
-          {/* RIGHT PANEL */}
           <section className="lg:col-span-7">
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 shadow-sm border border-slate-200 dark:border-slate-800 min-h-[480px] flex flex-col">
               <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -465,6 +478,8 @@ const Upload = () => {
                     className={`p-6 rounded-2xl border-2 shadow-sm ${
                       !isValidXray
                         ? 'bg-amber-50 border-amber-200 text-amber-900'
+                        : result.is_leg_xray === false
+                        ? 'bg-orange-50 border-orange-200 text-orange-900'
                         : hasFracture
                         ? 'bg-red-50 border-red-200 text-red-900'
                         : 'bg-emerald-50 border-emerald-200 text-emerald-900'
@@ -473,14 +488,19 @@ const Upload = () => {
                     <div className="flex items-center gap-3 mb-2">
                       {!isValidXray ? (
                         <AlertCircle size={24} />
+                      ) : result.is_leg_xray === false ? (
+                        <AlertCircle size={24} />
                       ) : hasFracture ? (
                         <AlertCircle size={24} />
                       ) : (
                         <CheckCircle size={24} />
                       )}
+
                       <h3 className="text-2xl font-black">
                         {!isValidXray
-                          ? 'Invalid Input'
+                          ? 'Invalid X-Ray Input'
+                          : result.is_leg_xray === false
+                          ? 'Not a Leg X-Ray'
                           : hasFracture
                           ? 'Fracture Detected'
                           : 'No Fracture Detected'}
@@ -490,13 +510,15 @@ const Upload = () => {
                     <p className="text-sm font-medium opacity-80 leading-relaxed">
                       {!isValidXray
                         ? 'The uploaded image was not recognized as an X-ray scan. Please upload a valid radiological image.'
+                        : result.is_leg_xray === false
+                        ? 'The uploaded image is a valid X-ray, but it is not a leg X-ray. Please upload a leg X-ray for fracture analysis.'
                         : hasFracture
                         ? 'Potential fracture detected. Please consult an orthopedic specialist for medical confirmation.'
-                        : 'No fracture was detected by the AI screening model in this image. A doctor should still review the scan.'}
+                        : 'No fracture was detected by the AI screening model in this leg X-ray. A doctor should still review the scan.'}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <ConfidenceCard
                       label="X-Ray Recognition Confidence"
                       value={result.xray_confidence}
@@ -505,17 +527,36 @@ const Upload = () => {
                     />
 
                     <ConfidenceCard
-                      label="Fracture Prediction Confidence"
-                      value={isValidXray ? result.fracture_confidence : null}
+                      label="Leg X-Ray Confidence"
+                      value={isValidXray ? result.leg_confidence ?? null : null}
                       status={
-                        isValidXray
+                        !isValidXray
+                          ? 'N/A'
+                          : result.is_leg_xray === true
+                          ? 'Leg'
+                          : 'Not Leg'
+                      }
+                      variant={
+                        !isValidXray
+                          ? 'slate'
+                          : result.is_leg_xray === true
+                          ? 'blue'
+                          : 'amber'
+                      }
+                    />
+
+                    <ConfidenceCard
+                      label="Fracture Prediction Confidence"
+                      value={isValidXray && isLegXray ? result.fracture_confidence : null}
+                      status={
+                        isValidXray && isLegXray
                           ? hasFracture
                             ? 'Positive'
                             : 'Negative'
                           : 'N/A'
                       }
                       variant={
-                        isValidXray
+                        isValidXray && isLegXray
                           ? hasFracture
                             ? 'red'
                             : 'emerald'
