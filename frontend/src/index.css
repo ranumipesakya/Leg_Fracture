@@ -6,6 +6,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.1);
+  }
+}
+
 @layer base {
   body {
     @apply bg-[#F0F7FF] dark:bg-slate-950 transition-colors duration-300;
@@ -14,4 +20,56 @@
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  filter: contrast(1.2) !important;
+}
+
+.high-contrast body,
+.high-contrast div,
+.high-contrast section,
+.high-contrast header,
+.high-contrast footer,
+.high-contrast main {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+.high-contrast p,
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast span,
+.high-contrast label {
+  color: #fff !important;
+}
+
+.high-contrast button, 
+.high-contrast a {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+}
+
+/* Color Blind Modes */
+[data-color-blind="protanopia"] {
+  filter: url('#protanopia-filter');
+}
+
+[data-color-blind="deuteranopia"] {
+  filter: url('#deuteranopia-filter');
+}
+
+[data-color-blind="tritanopia"] {
+  filter: url('#tritanopia-filter');
+}
+
+/* Keyboard Nav Visual Aid */
+.keyboard-nav *:focus-visible {
+  outline: 4px solid #3b82f6 !important;
+  outline-offset: 2px;
 }

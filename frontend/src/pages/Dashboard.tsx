@@ -1,108 +1,189 @@
-import { FaHeartbeat, FaChevronRight } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaHeartbeat, FaChevronRight, FaRegCalendarAlt, FaSnowflake, FaCompress, FaArrowUp, FaBed } from 'react-icons/fa';
 import PatientNavbar from '../components/PatientNavbar';
 
 const Dashboard = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    if (hour >= 17 && hour < 21) return "Good Evening";
+    return "Good Night";
+  };
+
   const userName = 'User';
+  const greeting = getGreeting();
+
+  const firstAidSteps = [
+    { title: "Rest", desc: "Minimize movement to prevent further injury.", icon: <FaBed className="w-5 h-5 text-blue-600" /> },
+    { title: "Ice", desc: "Apply ice for 15-20 mins to reduce swelling.", icon: <FaSnowflake className="w-5 h-5 text-blue-400" /> },
+    { title: "Compress", desc: "Wrap the area firmly but not tightly.", icon: <FaCompress className="w-5 h-5 text-indigo-500" /> },
+    { title: "Elevate", desc: "Keep the limb above the heart level.", icon: <FaArrowUp className="w-5 h-5 text-emerald-500" /> },
+  ];
 
   const uploadCategories = [
     {
       title: "Upload X-Ray",
-      description: "Submit new scans for AI fracture analysis.",
-      icon: <FaHeartbeat className="w-6 h-6 text-[#3B82F6] dark:text-cyan-400" />,
-      color: "bg-blue-50 dark:bg-blue-900/30",
+      description: "AI-powered fracture analysis and detection.",
+      icon: <FaHeartbeat className="w-8 h-8 text-blue-600" />,
+      colorClass: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
-      title: "Medical Reports",
-      description: "Keep your clinical history up to date.",
-      icon: <FaChevronRight className="w-5 h-5 text-slate-400" />,
-      color: "bg-slate-100 dark:bg-slate-800",
-    },
-    {
-      title: "Physiotherapy Guidelines",
-      description: "Follow your recommended exercises and recovery plan.",
-      icon: <FaChevronRight className="w-5 h-5 text-slate-400" />,
-      color: "bg-slate-100 dark:bg-slate-800",
+      title: "Physiotherapy",
+      description: "Personalized recovery exercises and guidelines.",
+      icon: null,
+      colorClass: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     }
   ];
 
   return (
-    <div className="font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
       <PatientNavbar currentPage="dashboard" />
       
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Header Section */}
-        <header className="mb-10">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Hello, <span className="text-[#3B82F6] dark:text-cyan-400">{userName}</span>
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Welcome back to your diagnostic overview.</p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* Left Column: Upload Bento Cards */}
-          <div className="lg:col-span-7 space-y-8">
-            <h2 className="text-xl font-extrabold px-1 text-slate-800 dark:text-slate-200">Quick Uploads</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {uploadCategories.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`group p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-blue-500/5 hover:shadow-blue-500/10 transition-all cursor-pointer ${index === 0 ? 'md:col-span-2' : ''}`}
-                  onClick={() => {
-                    if (index === 0) window.location.hash = "/upload";
-                    if (index === 2) window.location.hash = "/physio";
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-5">
-                      <div className={`w-14 h-14 rounded-2xl ${item.color} flex items-center justify-center`}>
-                        {item.icon}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.title}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{item.description}</p>
-                      </div>
-                    </div>
-                    <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-full group-hover:bg-[#3B82F6] dark:group-hover:bg-cyan-500 group-hover:text-white dark:group-hover:text-slate-900 transition-colors">
-                      <FaChevronRight className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+      <main className="max-w-7xl mx-auto px-6 py-12 md:py-20 lg:py-24">
+        
+        {/* Large Modern Header */}
+        <div className="relative mb-16 overflow-hidden p-12 rounded-[48px] bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+            <div>
+              <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+                {greeting}, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-6 text-xl font-medium max-w-2xl leading-relaxed">
+                Your professional AI-powered diagnostic portal for musculoskeletal health.
+              </p>
             </div>
-
-            {/* Analysis Status Placeholder */}
-            <div className="p-8 rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white shadow-2xl overflow-hidden relative group">
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-2">System Analytics</h3>
-                <p className="text-slate-400 text-sm font-medium">BoneScan AI engine is synchronized and ready for analysis.</p>
-              </div>
-              <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 blur-[80px] rounded-full -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-700" />
+            <div className="flex gap-4">
+               <div className="px-8 py-6 rounded-3xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <FaRegCalendarAlt className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Session</p>
+                    <p className="font-extrabold text-slate-900 dark:text-white text-xl">
+                      {currentTime.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </p>
+                    <p className="text-[12px] font-bold text-blue-500 dark:text-blue-400 uppercase mt-1">
+                      {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </p>
+                  </div>
+               </div>
             </div>
           </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
+        </div>
 
-          {/* Right Column: 3D Model Viewer */}
-          <div className="lg:col-span-5">
-            <div className="sticky top-24 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-6 shadow-2xl shadow-blue-500/5 h-[650px] flex flex-col">
-              <div className="flex items-center justify-between px-2 mb-4">
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold">3D Skeletal Visualization</span>
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          
+          <div className="lg:col-span-12 xl:col-span-7 space-y-12">
+            
+            {/* Quick Actions Area */}
+            <div className="space-y-12">
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4">
+                <div className="w-1.5 h-10 bg-blue-600 rounded-full" />
+                Quick Actions
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {uploadCategories.map((item, index) => (
+                    <div 
+                    key={index} 
+                    role="button"
+                    tabIndex={0}
+                    className={`group relative p-10 rounded-[40px] border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl transition-shadow cursor-pointer h-full min-h-[220px] flex flex-col justify-center`}
+                    onClick={() => {
+                        if (index === 0) window.location.hash = "/upload";
+                        if (index === 1) window.location.hash = "/physio";
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (index === 0) window.location.hash = "/upload";
+                        if (index === 1) window.location.hash = "/physio";
+                        }
+                    }}
+                    >
+                    <div className="flex items-center justify-between h-full">
+                        <div className="flex flex-col gap-6">
+                        {item.icon && (
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center">
+                            {item.icon}
+                            </div>
+                        )}
+                        <div>
+                            <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white leading-tight">{item.title}</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-2">
+                            {item.description}
+                            </p>
+                        </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                        <FaChevronRight className="w-6 h-6 text-slate-300" />
+                        </div>
+                    </div>
+                    </div>
+                ))}
+                </div>
+            </div>
+
+            {/* Fracture First Aid */}
+            <div className="space-y-12">
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-4">
+                    <div className="w-1.5 h-10 bg-red-500 rounded-full" />
+                    Fracture First-Aid (R.I.C.E Method)
+                </h2>
+                <div className="p-10 rounded-[48px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-2xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                        {firstAidSteps.map((step, i) => (
+                            <div key={i} className="flex flex-col gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center">
+                                        {step.icon}
+                                    </div>
+                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">{step.title}</h4>
+                                </div>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
+                                    {step.desc}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+          </div>
+
+          {/* Large Visualization Section */}
+          <div className="lg:col-span-12 xl:col-span-5">
+            <div className="sticky top-24 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[56px] p-10 shadow-3xl h-[860px] flex flex-col">
+              <div className="flex items-center justify-between mb-8">
+                <div className="space-y-1">
+                    <span className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Diagnostic Analysis</span>
+                    <h4 className="text-2xl font-bold text-slate-900 dark:text-white">Live Skeletal Preview</h4>
+                </div>
+                <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">
+                  Active
                 </div>
               </div>
               
-              <div className="flex-1 w-full rounded-[30px] overflow-hidden bg-slate-50 dark:bg-slate-800/50 relative border border-slate-50 dark:border-slate-800">
+              <div className="flex-1 w-full rounded-[48px] overflow-hidden bg-slate-50 dark:bg-slate-800/20 relative border border-slate-50 dark:border-slate-800 shadow-inner">
                 <model-viewer
                   src="/image.glb"
                   alt="3D Bone Model"
                   auto-rotate
                   camera-controls
-                  shadow-intensity="1"
+                  shadow-intensity="1.5"
                   style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
                 >
-                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-2.5 rounded-full text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest shadow-xl border border-white/20 dark:border-slate-800 cursor-default">
-                    Interactive Preview Mode
+                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-xl px-8 py-3 rounded-full text-[12px] font-black text-white uppercase tracking-[0.3em] shadow-2xl border border-white/10 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    Interactive Mode
                   </div>
                 </model-viewer>
               </div>

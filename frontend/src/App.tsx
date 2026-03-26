@@ -7,6 +7,7 @@ import Recovery3 from "./pages/recovery3";
 import UploadPage from "./pages/upload";
 import Chatbot from "./components/Chatbot";
 import Footer from "./components/Footer";
+import AccessibilityToolbar from "./components/AccessibilityToolbar";
 
 function getHashPath() {
   const hash = window.location.hash || "";
@@ -40,6 +41,7 @@ function App() {
       <div className="flex-grow">
         {page}
       </div>
+      <AccessibilityToolbar />
       <Footer />
       <Chatbot />
     </div>
