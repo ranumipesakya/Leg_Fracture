@@ -2,11 +2,11 @@ import { useState } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import PatientNavbar from '../components/PatientNavbar';
+import VoiceFeedback from '../components/VoiceFeedback';
+import type { ResultType } from '../components/VoiceFeedback';
 import {
   Upload as UploadIcon,
   FileText,
-  CheckCircle,
-  AlertCircle,
   Loader2,
   RefreshCw,
   ShieldCheck,
@@ -33,6 +33,15 @@ const Upload = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const mapResultToType = (res: PredictionResult | null): ResultType => {
+    if (!res) return "unknown";
+    if (res.is_xray === false) return "not_xray";
+    if (res.is_leg_xray === false) return "not_leg";
+    if (res.fracture_prediction === "Fractured") return "fractured";
+    if (res.fracture_prediction === "Not Fractured") return "not_fractured";
+    return "unknown";
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
@@ -496,54 +505,7 @@ const Upload = () => {
 
               {result && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                  <div
-                    className={`p-10 rounded-[40px] border-4 shadow-2xl transition-all ${
-                      !isValidXray
-                        ? 'bg-amber-500 border-amber-400 text-white'
-                        : result.is_leg_xray === false
-                        ? 'bg-orange-500 border-orange-400 text-white'
-                        : hasFracture
-                        ? 'bg-red-500 border-red-400 text-white'
-                        : 'bg-emerald-500 border-emerald-400 text-white'
-                    }`}
-                  >
-                    <div className="flex items-start gap-6 mb-4">
-                      <div className="p-4 bg-white/20 rounded-3xl backdrop-blur-md">
-                        {!isValidXray ? (
-                            <AlertCircle size={36} />
-                        ) : result.is_leg_xray === false ? (
-                            <AlertCircle size={36} />
-                        ) : hasFracture ? (
-                            <AlertCircle size={36} />
-                        ) : (
-                            <CheckCircle size={36} />
-                        )}
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-[12px] font-black uppercase tracking-[0.3em] opacity-80">Synthesis Outcome</p>
-                        <h3 className="text-4xl font-black tracking-tighter">
-                            {!isValidXray
-                            ? 'Invalid Scan Data'
-                            : result.is_leg_xray === false
-                            ? 'Anatomical Mismatch'
-                            : hasFracture
-                            ? 'Fracture Detected'
-                            : 'Stable Diagnostic'}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <p className="text-lg font-medium opacity-90 leading-relaxed mt-6">
-                      {!isValidXray
-                        ? 'The uploaded matrix was not recognized as a standard radiograph. Please verify input source.'
-                        : result.is_leg_xray === false
-                        ? 'Valid radiograph detected, however, the anatomical target (Leg) was not found in frame.'
-                        : hasFracture
-                        ? 'Primary AI analysis indicates a probable fracture. Urgent orthopedic consultation is recommended.'
-                        : 'No structural deviations or fractures were identified by the current neural model.'}
-                    </p>
-                  </div>
+                  <VoiceFeedback resultType={mapResultToType(result)} />
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <ConfidenceCard
@@ -570,8 +532,8 @@ const Upload = () => {
                       status={
                         isValidXray && isLegXray
                           ? hasFracture
-                            ? 'Positive'
-                            : 'Negative'
+                          ? 'Positive'
+                          : 'Negative'
                           : 'Suspended'
                       }
                     />
@@ -579,8 +541,8 @@ const Upload = () => {
 
                   <div className="p-10 rounded-[40px] bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-3 mb-6">
-                        <PlusCircle size={20} className="text-blue-600" />
-                        <h4 className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Expert Recommendation</h4>
+                      <PlusCircle size={20} className="text-blue-600" />
+                      <h4 className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Expert Recommendation</h4>
                     </div>
                     <p className="text-xl font-medium text-slate-700 dark:text-slate-200 leading-relaxed italic">
                       "{result.recommendation}"
@@ -589,11 +551,11 @@ const Upload = () => {
 
                   <div className="flex justify-end">
                     <button
-                        onClick={resetAll}
-                        className="group inline-flex items-center gap-4 px-8 py-4 bg-slate-900 dark:bg-slate-700 text-white font-black rounded-2xl uppercase tracking-widest text-xs transition-all hover:bg-black"
+                      onClick={resetAll}
+                      className="group inline-flex items-center gap-4 px-8 py-4 bg-slate-900 dark:bg-slate-700 text-white font-black rounded-2xl uppercase tracking-widest text-xs transition-all hover:bg-black"
                     >
-                        New Synthesis
-                        <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
+                      New Synthesis
+                      <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
                     </button>
                   </div>
                 </div>
