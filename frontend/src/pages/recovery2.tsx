@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface Exercise {
   id: number;
@@ -56,142 +56,21 @@ function publicUrl(assetPath: string): string {
   return `${trimmedBase}${trimmedAsset}`;
 }
 
-const exercises: Exercise[] = [
-  {
-    id: 1,
-    title: "Gentle Ankle Circles",
-    duration: "5 minutes",
-    sets: "1 set",
-    reps: "5-10 each direction",
-    imageUrl: publicUrl("Ankle Circles.webp"),
-    videoUrl: "https://youtu.be/mzTQGYGI0Ng?si=zocXp-4xcWj6Ia5F",
-    instructions: [
-      "Sit in a chair with your foot off the ground",
-      "Slowly rotate your ankle clockwise",
-      "Make small, gentle circles",
-      "Reverse direction and do the same",
-      "Keep movements smooth and controlled",
-      "If standing, hold onto something for balance",
-    ],
-    benefits: [
-      "Restores ankle mobility",
-      "Reduces stiffness",
-      "Improves balance",
-    ],
-    precautions: [
-      "Move very gently initially",
-      "Use support if unsteady",
-    ],
-  },
-  {
-    id: 2,
-    title: "Calf Stretches",
-    duration: "5-10 minutes",
-    sets: "2-3 sets",
-    reps: "Hold 30 seconds, 3 times",
-    imageUrl: publicUrl("calf.webp"),
-    videoUrl: "https://youtu.be/u4o0Fz6MFe0?si=YUH1tay0mtERs0vt",
-    instructions: [
-      "Stand facing a wall with hands at shoulder height",
-      "Step the affected leg back about 2 feet",
-      "Keep your back heel on the floor",
-      "Bend your front knee slightly",
-      "Feel the stretch in your back calf",
-      "Hold for 30 seconds, then switch legs",
-    ],
-    benefits: [
-      "Stretches calf muscles",
-      "Improves flexibility",
-      "Reduces tension",
-    ],
-    precautions: [
-      "Don't stretch too forcefully",
-      "Keep heels flat on floor",
-    ],
-  },
-  {
-    id: 3,
-    title: "Seated Marching",
-    duration: "5 minutes",
-    sets: "1 set",
-    reps: "As comfortable",
-    imageUrl: publicUrl("marching.webp"),
-    videoUrl: "https://youtu.be/XeIeEv38kcc?si=S0quN2bxM8bZUZC9",
-    instructions: [
-      "Sit in a sturdy chair with feet flat on floor",
-      "Lift your right knee as high as comfortable",
-      "Lower it back down with control",
-      "Lift your left knee",
-      "Continue alternating in a marching motion",
-      "Swing arms naturally if desired",
-    ],
-    benefits: [
-      "Improves hip mobility",
-      "Warms up joints",
-      "Gets blood flowing",
-    ],
-    precautions: [
-      "Don't lift knees too high if painful",
-      "Keep back straight",
-    ],
-  },
-  {
-    id: 4,
-    title: "Balance Weight Shifts",
-    duration: "5 minutes",
-    sets: "1 set",
-    reps: "Hold 10-20 seconds each side",
-    imageUrl: publicUrl("standing.gif"),
-    videoUrl: "https://youtu.be/O4-q0_GpfdA?si=Er3r1b44qtD-EGnl",
-    instructions: [
-      "Stand behind a sturdy chair, holding it for support",
-      "Shift your weight onto your right foot",
-      "Hold for 10-20 seconds",
-      "Return to center",
-      "Shift weight to your left foot",
-      "Hold for 10-20 seconds",
-    ],
-    benefits: [
-      "Improves balance",
-      "Builds weight-bearing confidence",
-      "Strengthens legs",
-    ],
-    precautions: [
-      "Always have support nearby",
-      "Start with eyes open",
-    ],
-  },
-  {
-    id: 5,
-    title: "Heel-to-Toe Walking",
-    duration: "5-10 minutes",
-    sets: "1 set",
-    reps: "20 steps, rest, repeat",
-    imageUrl: publicUrl("heel-walk.gif"),
-    videoUrl: "https://youtu.be/eghMLTn8tDc?si=4vWwH8RzheCR0D0B",
-    instructions: [
-      "Stand near a wall or have someone walk beside you",
-      "Place your heel directly in front of your toes",
-      "Take slow, deliberate steps in a line",
-      "Keep your eyes focused ahead",
-      "Take 20 steps, rest, repeat",
-      "Use wall or person for support if needed",
-    ],
-    benefits: [
-      "Improves balance",
-      "Enhances coordination",
-      "Builds confidence",
-    ],
-    precautions: [
-      "Clear the path of obstacles",
-      "Start in a safe, open area",
-    ],
-  },
-];
+// Exercises are now fetched from the API
 
 const Recovery2: React.FC = () => {
   const modulesSectionRef = useRef<HTMLElement | null>(null);
   const hasAutoScrolledRef = useRef(false);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/exercises')
+      .then(res => res.json())
+      .then(data => {
+        setExercises(data.filter((ex: any) => ex.category === 'after-fall'));
+      })
+      .catch(err => console.error('Failed to load exercises', err));
+  }, []);
 
   const jumpToModules = () => {
     if (hasAutoScrolledRef.current) return;

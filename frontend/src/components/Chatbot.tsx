@@ -12,8 +12,7 @@ import {
   Volume2,
   VolumeX,
   Mic,
-  MicOff,
-  Sparkles
+  MicOff
 } from 'lucide-react';
 
 type Message = {
@@ -63,7 +62,7 @@ const Chatbot = () => {
     {
       id: 1,
       sender: 'bot',
-      text: 'Welcome to BoneScan AI Assistant. I am powered by Gemini to help you understand your reports and recovery journey. How can I assist you today?'
+      text: 'Welcome to BoneScan AI Assistant. I am here to help you understand your reports and recovery journey. How can I assist you today?'
     }
   ]);
 
@@ -153,7 +152,7 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
-      // Gemini chat history must start with a "user" message.
+      // Backend chat history must start with a "user" message.
       const history = messages
         .filter((m) => m.id !== 1)
         .map((m) => ({
@@ -238,13 +237,13 @@ const Chatbot = () => {
     <>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 w-14 h-14 z-50 flex items-center justify-center rounded-full border border-blue-400/30 bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-[0_10px_40px_rgba(37,99,235,0.4)] transition-all duration-300 hover:scale-110 active:scale-95 group"
+        className="fixed bottom-6 right-6 w-12 h-12 z-50 flex items-center justify-center rounded-full border border-blue-400/30 bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-[0_10px_40px_rgba(37,99,235,0.4)] transition-all duration-300 hover:scale-110 active:scale-95 group"
         aria-label="Toggle AI Assistant"
       >
-        {isOpen ? <X size={28} /> : (
+        {isOpen ? <X size={24} /> : (
           <div className="relative">
-            <MessageCircle size={28} className="group-hover:rotate-12 transition-transform" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
+            <MessageCircle size={24} className="group-hover:rotate-12 transition-transform" />
+            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
           </div>
         )}
       </button>
@@ -261,9 +260,6 @@ const Chatbot = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold tracking-tight">BoneScan AI</h3>
-                    <span className="flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400 ring-1 ring-blue-400/20 uppercase tracking-tighter">
-                      <Sparkles size={8} /> Gemini 2.5 Flash
-                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
@@ -299,7 +295,7 @@ const Chatbot = () => {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.05),_transparent_40%)]">
+          <div className="chatbot-scroll flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.05),_transparent_40%)]">
             {messages.map((msg) => (
               <div
                 key={msg.id}

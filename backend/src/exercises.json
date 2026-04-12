@@ -1,0 +1,296 @@
+[
+  {
+    "id": 1,
+    "title": "Ankle Pumps",
+    "duration": "5-10 min",
+    "sets": "3-5 sets",
+    "reps": "10-15 reps",
+    "imageUrl": "/ankel.gif",
+    "videoUrl": "https://youtu.be/KxfFzSOAT7g?si=awzUIzo3vg5N8Uhx",
+    "category": "post-surgery",
+    "instructions": [
+      "Sit comfortably with your leg elevated on a pillow",
+      "Slowly flex your ankle, pulling your toes toward you",
+      "Hold for 2-3 seconds",
+      "Point your toes away from you",
+      "Hold for 2-3 seconds",
+      "Repeat in a smooth, controlled motion"
+    ],
+    "benefits": ["Improves blood circulation", "Reduces swelling", "Prevents blood clots"],
+    "precautions": ["Stop if you feel sharp pain", "Keep movements gentle"]
+  },
+  {
+    "id": 2,
+    "title": "Toe Curls",
+    "duration": "3-5 min",
+    "sets": "2-3 sets",
+    "reps": "10 reps",
+    "imageUrl": "/toe.gif",
+    "videoUrl": "https://youtube.com/shorts/RoEmHev3KZ8?si=lhEJITCWNat3cPP5",
+    "category": "post-surgery",
+    "instructions": [
+      "Sit with your foot flat on the floor",
+      "Place a small towel on the floor in front of you",
+      "Use your toes to curl and grab the towel",
+      "Hold for 5 seconds",
+      "Release and repeat"
+    ],
+    "benefits": ["Strengthens toe muscles", "Improves grip", "Foot coordination"],
+    "precautions": ["Don't force your toes", "Use a light towel initially"]
+  },
+  {
+    "id": 3,
+    "title": "Heel Slides",
+    "duration": "5-10 min",
+    "sets": "2-3 sets",
+    "reps": "10 per leg",
+    "imageUrl": "/heel.gif",
+    "videoUrl": "https://youtu.be/A7fcobCVppc?si=cAgXsw8flhaYLWjF",
+    "category": "post-surgery",
+    "instructions": [
+      "Lie on your back with both legs straight",
+      "Slowly slide your height toward your buttocks",
+      "Slide as far as comfortable (45-90 degrees)",
+      "Hold for 5 seconds",
+      "Slowly slide back to starting position"
+    ],
+    "benefits": ["Knee range of motion", "Reduces stiffness", "Joint health"],
+    "precautions": ["Don't push through sharp pain", "Use a slider or cloth"]
+  },
+  {
+    "id": 4,
+    "title": "Quad Sets",
+    "duration": "5 min",
+    "sets": "3 sets",
+    "reps": "10 reps",
+    "imageUrl": "/sqare.gif",
+    "videoUrl": "https://www.youtube.com/embed/5TUK4uT2nnw",
+    "category": "post-surgery",
+    "instructions": [
+      "Lie on your back with one leg straight",
+      "Tighten the muscle on top of your thigh",
+      "Push the back of your knee down into the floor",
+      "Hold for 5 seconds",
+      "Relax and repeat"
+    ],
+    "benefits": ["Maintains quad strength", "Prevents atrophy", "Knee stability"],
+    "precautions": ["Don't hold your breath", "Keep kneecap moving upward"]
+  },
+  {
+    "id": 5,
+    "title": "Straight Leg Raise",
+    "duration": "5-10 min",
+    "sets": "3 sets",
+    "reps": "10 per leg",
+    "imageUrl": "/raise.gif",
+    "videoUrl": "https://youtu.be/qvi8aM02_GY?si=kPnhnmYQnzjtWTjk",
+    "category": "post-surgery",
+    "instructions": [
+      "Lie on your back with one leg straight and one bent",
+      "Tighten your thigh muscle on the straight leg",
+      "Lift your leg about 12 inches off the floor",
+      "Keep your knee completely straight",
+      "Lower slowly with control"
+    ],
+    "benefits": ["Strengthens quadriceps", "Leg stability", "Builds endurance"],
+    "precautions": ["Start with non-affected leg", "Stop if knee feels unstable"]
+  },
+  {
+    "id": 6,
+    "title": "Ankle Circles",
+    "duration": "3-5 min",
+    "sets": "10 each dir.",
+    "reps": "N/A",
+    "imageUrl": "/Ankle Circles.webp",
+    "videoUrl": "https://youtu.be/mzTQGYGI0Ng?si=zocXp-4xcWj6Ia5F",
+    "category": "post-surgery",
+    "instructions": [
+      "Sit comfortably or lie back with your leg elevated",
+      "Rotate your ankle slowly in a circular motion",
+      "Do 10 circles clockwise",
+      "Do 10 circles counter-clockwise"
+    ],
+    "benefits": ["Improves ankle mobility", "Reduces stiffness", "Coordination"],
+    "precautions": ["Keep circles small if swollen", "Don't force range"]
+  },
+  {
+    "id": 7,
+    "title": "Gentle Ankle Circles",
+    "duration": "5 minutes",
+    "sets": "1 set",
+    "reps": "5-10 each direction",
+    "imageUrl": "/Ankle Circles.webp",
+    "videoUrl": "https://youtu.be/mzTQGYGI0Ng?si=zocXp-4xcWj6Ia5F",
+    "category": "after-fall",
+    "instructions": [
+      "Sit in a chair with your foot off the ground",
+      "Slowly rotate your ankle clockwise",
+      "Make small, gentle circles",
+      "Reverse direction and do the same",
+      "Keep movements smooth and controlled",
+      "If standing, hold onto something for balance"
+    ],
+    "benefits": ["Restores ankle mobility", "Reduces stiffness", "Improves balance"],
+    "precautions": ["Move very gently initially", "Use support if unsteady"]
+  },
+  {
+    "id": 8,
+    "title": "Calf Stretches",
+    "duration": "5-10 minutes",
+    "sets": "2-3 sets",
+    "reps": "Hold 30 seconds, 3 times",
+    "imageUrl": "/calf.webp",
+    "videoUrl": "https://youtu.be/u4o0Fz6MFe0?si=YUH1tay0mtERs0vt",
+    "category": "after-fall",
+    "instructions": [
+      "Stand facing a wall with hands at shoulder height",
+      "Step the affected leg back about 2 feet",
+      "Keep your back heel on the floor",
+      "Bend your front knee slightly",
+      "Feel the stretch in your back calf",
+      "Hold for 30 seconds, then switch legs"
+    ],
+    "benefits": ["Stretches calf muscles", "Improves flexibility", "Reduces tension"],
+    "precautions": ["Don't stretch too forcefully", "Keep heels flat on floor"]
+  },
+  {
+    "id": 9,
+    "title": "Seated Marching",
+    "duration": "5 minutes",
+    "sets": "1 set",
+    "reps": "As comfortable",
+    "imageUrl": "/marching.webp",
+    "videoUrl": "https://youtu.be/XeIeEv38kcc?si=S0quN2bxM8bZUZC9",
+    "category": "after-fall",
+    "instructions": [
+      "Sit in a sturdy chair with feet flat on floor",
+      "Lift your right knee as high as comfortable",
+      "Lower it back down with control",
+      "Lift your left knee",
+      "Continue alternating in a marching motion",
+      "Swing arms naturally if desired"
+    ],
+    "benefits": ["Improves hip mobility", "Warms up joints", "Gets blood flowing"],
+    "precautions": ["Don't lift knees too high if painful", "Keep back straight"]
+  },
+  {
+    "id": 10,
+    "title": "Balance Weight Shifts",
+    "duration": "5 minutes",
+    "sets": "1 set",
+    "reps": "Hold 10-20 seconds each side",
+    "imageUrl": "/standing.gif",
+    "videoUrl": "https://youtu.be/O4-q0_GpfdA?si=Er3r1b44qtD-EGnl",
+    "category": "after-fall",
+    "instructions": [
+      "Stand behind a sturdy chair, holding it for support",
+      "Shift your weight onto your right foot",
+      "Hold for 10-20 seconds",
+      "Return to center",
+      "Shift weight to your left foot",
+      "Hold for 10-20 seconds"
+    ],
+    "benefits": ["Improves balance", "Builds weight-bearing confidence", "Strengthens legs"],
+    "precautions": ["Always have support nearby", "Start with eyes open"]
+  },
+  {
+    "id": 11,
+    "title": "Heel-to-Toe Walking",
+    "duration": "5-10 minutes",
+    "sets": "1 set",
+    "reps": "20 steps, rest, repeat",
+    "imageUrl": "/heel-walk.gif",
+    "videoUrl": "https://youtu.be/eghMLTn8tDc?si=4vWwH8RzheCR0D0B",
+    "category": "after-fall",
+    "instructions": [
+      "Stand near a wall or have someone walk beside you",
+      "Place your heel directly in front of your toes",
+      "Take slow, deliberate steps in a line",
+      "Keep your eyes focused ahead",
+      "Take 20 steps, rest, repeat",
+      "Use wall or person for support if needed"
+    ],
+    "benefits": ["Improves balance", "Enhances coordination", "Builds confidence"],
+    "precautions": ["Clear the path of obstacles", "Start in a safe, open area"]
+  },
+  {
+    "id": 12,
+    "title": "Ankle Alphabet",
+    "duration": "5 minutes",
+    "sets": "1 set",
+    "reps": "A-Z",
+    "imageUrl": "/alphabet.gif",
+    "videoUrl": "https://youtu.be/vHMJ0zgrsFU?si=7Os08x2EeVKsG19j",
+    "category": "general-pain",
+    "instructions": [
+      "Sit comfortably with your leg extended",
+      "Use your big toe to trace the alphabet in the air",
+      "Make the letters as large as comfortable",
+      "Move only your ankle, not your leg",
+      "Complete A through Z",
+      "This exercises all ankle movements"
+    ],
+    "benefits": ["Full ankle range of motion", "Fun and engaging", "Improves coordination"],
+    "precautions": ["Keep movements within pain-free range", "Stop if any movement causes pain"]
+  },
+  {
+    "id": 13,
+    "title": "Towel Stretch",
+    "duration": "5-10 minutes",
+    "sets": "2-3 sets",
+    "reps": "Hold 30 seconds, 3 times",
+    "imageUrl": "/calf3.gif",
+    "videoUrl": "https://youtube.com/shorts/KoFs5dOz25k?si=99dH_a8YnNYdTVZE",
+    "category": "general-pain",
+    "instructions": [
+      "Sit on the floor with your legs extended",
+      "Loop a towel around the ball of your foot",
+      "Hold the ends of the towel with both hands",
+      "Gently pull the towel toward you",
+      "Keep your knee straight",
+      "Feel the stretch in your calf and foot"
+    ],
+    "benefits": ["Stretches calf and foot", "Improves flexibility", "Relieves tension"],
+    "precautions": ["Don't pull too hard", "Keep back straight"]
+  },
+  {
+    "id": 14,
+    "title": "Foot Roll Massage",
+    "duration": "5-10 minutes",
+    "sets": "1 set",
+    "reps": "As comfortable",
+    "imageUrl": "/roll.gif",
+    "videoUrl": "https://youtu.be/vHkTiFusJXk?si=ArNRKuGWbkmslhAG",
+    "category": "general-pain",
+    "instructions": [
+      "Sit in a chair with a tennis ball or frozen water bottle",
+      "Place the ball under your foot",
+      "Roll your foot back and forth over the ball",
+      "Apply gentle pressure",
+      "Roll from heel to toe and side to side",
+      "Focus on tender areas"
+    ],
+    "benefits": ["Relieves muscle tension", "Improves circulation", "Reduces pain"],
+    "precautions": ["Don't roll over bony prominences", "Use frozen bottle for inflammation"]
+  },
+  {
+    "id": 15,
+    "title": "Resisted Ankle Inversion",
+    "duration": "5-10 minutes",
+    "sets": "3 sets",
+    "reps": "10-15 reps",
+    "imageUrl": "/resisted.gif",
+    "videoUrl": "https://youtu.be/50YDq8_OA_w?si=zmX3y7alPXH-B0oZ",
+    "category": "general-pain",
+    "instructions": [
+      "Sit in a chair or lie on your side",
+      "Loop a resistance band around your foot",
+      "Hold the other end of the band",
+      "Turn your foot inward against resistance",
+      "Hold for 2 seconds",
+      "Slowly return to start"
+    ],
+    "benefits": ["Strengthens ankle stabilizers", "Prevents sprains", "Improves control"],
+    "precautions": ["Start with light resistance", "Move slowly and controlled"]
+  }
+]

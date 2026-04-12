@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface Exercise {
   id: number;
@@ -56,120 +56,21 @@ function publicUrl(assetPath: string): string {
   return `${trimmedBase}${trimmedAsset}`;
 }
 
-const exercises: Exercise[] = [
-  {
-    id: 1,
-    title: "Ankle Alphabet",
-    duration: "5 minutes",
-    sets: "1 set",
-    reps: "A-Z",
-    imageUrl: publicUrl("alphabet.gif"),
-    videoUrl: "https://youtu.be/vHMJ0zgrsFU?si=7Os08x2EeVKsG19j",
-    instructions: [
-      "Sit comfortably with your leg extended",
-      "Use your big toe to trace the alphabet in the air",
-      "Make the letters as large as comfortable",
-      "Move only your ankle, not your leg",
-      "Complete A through Z",
-      "This exercises all ankle movements"
-    ],
-    benefits: [
-      "Full ankle range of motion",
-      "Fun and engaging",
-      "Improves coordination"
-    ],
-    precautions: [
-      "Keep movements within pain-free range",
-      "Stop if any movement causes pain"
-    ]
-  },
-
-  {
-    id: 2,
-    title: "Towel Stretch",
-    duration: "5-10 minutes",
-    sets: "2-3 sets",
-    reps: "Hold 30 seconds, 3 times",
-    imageUrl: publicUrl("calf3.gif"),
-    videoUrl: "https://youtube.com/shorts/KoFs5dOz25k?si=99dH_a8YnNYdTVZE",
-    instructions: [
-      "Sit on the floor with your legs extended",
-      "Loop a towel around the ball of your foot",
-      "Hold the ends of the towel with both hands",
-      "Gently pull the towel toward you",
-      "Keep your knee straight",
-      "Feel the stretch in your calf and foot"
-    ],
-    benefits: [
-      "Stretches calf and foot",
-      "Improves flexibility",
-      "Relieves tension"
-    ],
-    precautions: [
-      "Don't pull too hard",
-      "Keep back straight"
-    ]
-  },
-
-  {
-    id: 3,
-    title: "Foot Roll Massage",
-    duration: "5-10 minutes",
-    sets: "1 set",
-    reps: "As comfortable",
-    imageUrl: publicUrl("roll.gif"),
-    videoUrl: "https://youtu.be/vHkTiFusJXk?si=ArNRKuGWbkmslhAG",
-    instructions: [
-      "Sit in a chair with a tennis ball or frozen water bottle",
-      "Place the ball under your foot",
-      "Roll your foot back and forth over the ball",
-      "Apply gentle pressure",
-      "Roll from heel to toe and side to side",
-      "Focus on tender areas"
-    ],
-    benefits: [
-      "Relieves muscle tension",
-      "Improves circulation",
-      "Reduces pain"
-    ],
-    precautions: [
-      "Don't roll over bony prominences",
-      "Use frozen bottle for inflammation"
-    ]
-  },
-
-  {
-    id: 4,
-    title: "Resisted Ankle Inversion",
-    duration: "5-10 minutes",
-    sets: "3 sets",
-    reps: "10-15 reps",
-    imageUrl: publicUrl("resisted.gif"),
-    videoUrl: "https://youtu.be/50YDq8_OA_w?si=zmX3y7alPXH-B0oZ",
-    instructions: [
-      "Sit in a chair or lie on your side",
-      "Loop a resistance band around your foot",
-      "Hold the other end of the band",
-      "Turn your foot inward against resistance",
-      "Hold for 2 seconds",
-      "Slowly return to start"
-    ],
-    benefits: [
-      "Strengthens ankle stabilizers",
-      "Prevents sprains",
-      "Improves control"
-    ],
-    precautions: [
-      "Start with light resistance",
-      "Move slowly and controlled"
-    ]
-  }
-];
+// Exercises are now fetched from the API
 
 const Recovery3: React.FC = () => {
-
   const modulesSectionRef = useRef<HTMLElement | null>(null);
   const hasAutoScrolledRef = useRef(false);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/exercises')
+      .then(res => res.json())
+      .then(data => {
+        setExercises(data.filter((ex: any) => ex.category === 'general-pain'));
+      })
+      .catch(err => console.error('Failed to load exercises', err));
+  }, []);
 
   const jumpToModules = () => {
     if (hasAutoScrolledRef.current) return;

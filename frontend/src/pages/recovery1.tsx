@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 interface Exercise {
   id: number;
@@ -56,126 +56,21 @@ function publicUrl(assetPath: string): string {
   return `${trimmedBase}${trimmedAsset}`;
 }
 
-const exercises: Exercise[] = [
-  {
-    id: 1,
-    title: "Ankle Pumps",
-    duration: "5-10 min",
-    sets: "3-5 sets",
-    reps: "10-15 reps",
-    imageUrl:
-      publicUrl("ankel.gif"),
-    videoUrl: "https://youtu.be/KxfFzSOAT7g?si=awzUIzo3vg5N8Uhx",
-    instructions: [
-      "Sit comfortably with your leg elevated on a pillow",
-      "Slowly flex your ankle, pulling your toes toward you",
-      "Hold for 2-3 seconds",
-      "Point your toes away from you",
-      "Hold for 2-3 seconds",
-      "Repeat in a smooth, controlled motion",
-    ],
-    benefits: ["Improves blood circulation", "Reduces swelling", "Prevents blood clots"],
-    precautions: ["Stop if you feel sharp pain", "Keep movements gentle"],
-  },
-  {
-    id: 2,
-    title: "Toe Curls",
-    duration: "3-5 min",
-    sets: "2-3 sets",
-    reps: "10 reps",
-    imageUrl:
-      publicUrl("toe.gif"),
-    videoUrl: "https://youtube.com/shorts/RoEmHev3KZ8?si=lhEJITCWNat3cPP5",
-    instructions: [
-      "Sit with your foot flat on the floor",
-      "Place a small towel on the floor in front of you",
-      "Use your toes to curl and grab the towel",
-      "Hold for 5 seconds",
-      "Release and repeat",
-    ],
-    benefits: ["Strengthens toe muscles", "Improves grip", "Foot coordination"],
-    precautions: ["Don't force your toes", "Use a light towel initially"],
-  },
-  {
-    id: 3,
-    title: "Heel Slides",
-    duration: "5-10 min",
-    sets: "2-3 sets",
-    reps: "10 per leg",
-    imageUrl:
-      publicUrl("heel.gif"),
-    videoUrl: "https://youtu.be/A7fcobCVppc?si=cAgXsw8flhaYLWjF",
-    instructions: [
-      "Lie on your back with both legs straight",
-      "Slowly slide your height toward your buttocks",
-      "Slide as far as comfortable (45-90 degrees)",
-      "Hold for 5 seconds",
-      "Slowly slide back to starting position",
-    ],
-    benefits: ["Knee range of motion", "Reduces stiffness", "Joint health"],
-    precautions: ["Don't push through sharp pain", "Use a slider or cloth"],
-  },
-  {
-    id: 4,
-    title: "Quad Sets",
-    duration: "5 min",
-    sets: "3 sets",
-    reps: "10 reps",
-    imageUrl:
-      publicUrl("sqare.gif"),
-    videoUrl: "https://www.youtube.com/embed/5TUK4uT2nnw",
-    instructions: [
-      "Lie on your back with one leg straight",
-      "Tighten the muscle on top of your thigh",
-      "Push the back of your knee down into the floor",
-      "Hold for 5 seconds",
-      "Relax and repeat",
-    ],
-    benefits: ["Maintains quad strength", "Prevents atrophy", "Knee stability"],
-    precautions: ["Don't hold your breath", "Keep kneecap moving upward"],
-  },
-  {
-    id: 5,
-    title: "Straight Leg Raise",
-    duration: "5-10 min",
-    sets: "3 sets",
-    reps: "10 per leg",
-    imageUrl:
-      publicUrl("raise.gif"),
-    videoUrl: "https://youtu.be/qvi8aM02_GY?si=kPnhnmYQnzjtWTjk",
-    instructions: [
-      "Lie on your back with one leg straight and one bent",
-      "Tighten your thigh muscle on the straight leg",
-      "Lift your leg about 12 inches off the floor",
-      "Keep your knee completely straight",
-      "Lower slowly with control",
-    ],
-    benefits: ["Strengthens quadriceps", "Leg stability", "Builds endurance"],
-    precautions: ["Start with non-affected leg", "Stop if knee feels unstable"],
-  },
-  {
-    id: 6,
-    title: "Ankle Circles",
-    duration: "3-5 min",
-    sets: "10 each dir.",
-    reps: "N/A",
-    imageUrl:
-      publicUrl("Ankle Circles.webp"),
-    videoUrl: "https://youtu.be/mzTQGYGI0Ng?si=zocXp-4xcWj6Ia5F",
-    instructions: [
-      "Sit comfortably or lie back with your leg elevated",
-      "Rotate your ankle slowly in a circular motion",
-      "Do 10 circles clockwise",
-      "Do 10 circles counter-clockwise",
-    ],
-    benefits: ["Improves ankle mobility", "Reduces stiffness", "Coordination"],
-    precautions: ["Keep circles small if swollen", "Don't force range"],
-  },
-];
+// Exercises are now fetched from the API
 
 const Recovery1: React.FC = () => {
   const modulesSectionRef = useRef<HTMLElement | null>(null);
   const hasAutoScrolledRef = useRef(false);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/exercises')
+      .then(res => res.json())
+      .then(data => {
+        setExercises(data.filter((ex: any) => ex.category === 'post-surgery'));
+      })
+      .catch(err => console.error('Failed to load exercises', err));
+  }, []);
 
   const jumpToModules = () => {
     if (hasAutoScrolledRef.current) return;

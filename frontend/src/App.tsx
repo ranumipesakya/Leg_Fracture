@@ -8,6 +8,10 @@ import UploadPage from "./pages/upload";
 import Chatbot from "./components/Chatbot";
 import Footer from "./components/Footer";
 import AccessibilityToolbar from "./components/AccessibilityToolbar";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminAuth from "./pages/AdminAuth";
+import UserAuth from "./pages/UserAuth";
+import PortalSelection from "./pages/PortalSelection";
 
 function getHashPath() {
   const hash = window.location.hash || "";
@@ -34,6 +38,16 @@ function App() {
   else if (path === "/recovery1") page = <Recovery1 />;
   else if (path === "/recovery2") page = <Recovery2 />;
   else if (path === "/recovery3") page = <Recovery3 />;
+  else if (path === "/admin-auth") page = <AdminAuth />;
+  else if (path === "/admin") {
+    if (!localStorage.getItem('adminToken')) {
+      page = <AdminAuth />;
+    } else {
+      page = <AdminDashboard />;
+    }
+  }
+  else if (path === "/auth") page = <UserAuth />;
+  else if (path === "/portal") page = <PortalSelection />;
   else page = <Dashboard />;
 
   return (

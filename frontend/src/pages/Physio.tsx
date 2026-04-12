@@ -79,7 +79,7 @@ const Physio: React.FC = () => {
 
               <h1 className="mt-6 text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white">
                 Stronger Recovery
-                <span className="block text-[#2168d8] dark:text-cyan-300">Without the Guesswork</span>
+                <span className="block text-blue-600 dark:text-blue-400">Without the Guesswork</span>
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm text-slate-600 sm:text-base md:text-lg dark:text-slate-300">

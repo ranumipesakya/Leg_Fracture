@@ -6,11 +6,20 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 dotenv.config();
 
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB database connected perfectly!'))
+  .catch((err) => console.error('MongoDB connection error:', err));
+
+
 const app = express();
 const upload = multer({ dest: 'uploads/' });
+const mlPredictUrl = process.env.ML_PREDICT_URL || 'http://127.0.0.1:5001/predict';
 
 function getGenerativeModel() {
   if (!process.env.GEMINI_API_KEY) {
@@ -68,6 +77,154 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// User Auth API
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+app.post('/api/auth/user/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, password: hashedPassword });
+    await newUser.save();
+    res.json({ message: 'User registered successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to register' });
+  }
+});
+
+app.post('/api/auth/user/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
+    res.json({ token, email: user.email });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+// Admin Auth API
+const adminSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+const Admin = mongoose.model('Admin', adminSchema);
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) return res.status(400).json({ error: 'Admin already exists' });
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newAdmin = new Admin({ email, password: hashedPassword });
+    await newAdmin.save();
+    res.json({ message: 'Admin registered successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to register' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || 'secret123', { expiresIn: '1d' });
+    res.json({ token, email: admin.email });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+// Exercises API - MongoDB Integration
+const exerciseSchema = new mongoose.Schema({
+  id: { type: Number, required: true, unique: true },
+  title: String,
+  duration: String,
+  sets: String,
+  reps: String,
+  imageUrl: String,
+  videoUrl: String,
+  category: String,
+  instructions: [String],
+  benefits: [String],
+  precautions: [String]
+});
+
+const Exercise = mongoose.model('Exercise', exerciseSchema);
+
+// Initial MongoDB migration from local JSON file
+const EXERCISES_FILE = './src/exercises.json';
+mongoose.connection.once('open', async () => {
+  try {
+    const count = await Exercise.countDocuments();
+    if (count === 0 && fs.existsSync(EXERCISES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(EXERCISES_FILE, 'utf8'));
+      await Exercise.insertMany(data);
+      console.log('Successfully securely migrated exercises.json to MongoDB cluster!');
+    }
+  } catch (err) {
+    console.error('Migration error:', err);
+  }
+});
+
+app.get('/api/exercises', async (req, res) => {
+  try {
+    const data = await Exercise.find();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to load exercises' });
+  }
+});
+
+app.post('/api/exercises', async (req, res) => {
+  try {
+    const newExercise = new Exercise(req.body);
+    await newExercise.save();
+    res.json(newExercise);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save exercise' });
+  }
+});
+
+app.put('/api/exercises/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const updated = await Exercise.findOneAndUpdate({ id }, req.body, { new: true });
+    if (!updated) return res.status(404).json({ error: 'Exercise not found' });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update exercise' });
+  }
+});
+
+app.delete('/api/exercises/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await Exercise.findOneAndDelete({ id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete exercise' });
+  }
+});
+
 // Chatbot endpoint
 app.post('/api/chat', async (req, res) => {
   try {
@@ -78,7 +235,7 @@ app.post('/api/chat', async (req, res) => {
       historyLength: history?.length,
       safeHistoryLength: safeHistory.length,
     });
-    
+
     const model = getGenerativeModel();
     if (!model) {
       console.error('GEMINI_API_KEY is missing in .env file');
@@ -239,7 +396,7 @@ app.post('/api/predict', upload.single('image'), async (req, res) => {
     const form = new FormData();
     form.append('image', fs.createReadStream(req.file.path));
 
-    const predictionResponse = await axios.post('http://127.0.0.1:5001/predict', form, {
+    const predictionResponse = await axios.post(mlPredictUrl, form, {
       headers: form.getHeaders(),
     });
 
@@ -285,8 +442,9 @@ app.post('/api/predict', upload.single('image'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
