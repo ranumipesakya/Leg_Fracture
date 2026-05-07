@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import api from '../utils/api';
 import axios from 'axios';
 import {
   MessageCircle,
@@ -160,7 +161,7 @@ const Chatbot = () => {
           parts: [{ text: m.text }]
         }));
 
-      const response = await axios.post('http://localhost:5000/api/chat', {
+      const response = await api.post('/api/chat', {
         message: finalText,
         history: history
       });

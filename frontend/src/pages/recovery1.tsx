@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import api from "../utils/api";
 
 interface Exercise {
   id: number;
@@ -64,10 +65,9 @@ const Recovery1: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/exercises')
-      .then(res => res.json())
-      .then(data => {
-        setExercises(data.filter((ex: any) => ex.category === 'post-surgery'));
+    api.get('/api/exercises')
+      .then(response => {
+        setExercises(response.data.filter((ex: any) => ex.category === 'post-surgery'));
       })
       .catch(err => console.error('Failed to load exercises', err));
   }, []);
@@ -126,13 +126,13 @@ const Recovery1: React.FC = () => {
               className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden mb-12 flex flex-col md:flex-row border border-gray-100 dark:border-slate-800 transition-transform hover:shadow-2xl"
             >
               <div className="md:w-1/2 flex flex-col bg-[#F8FBFF] dark:bg-slate-800">
-                <div className="relative h-[250px] md:h-[280px]">
+                <div className="relative h-[250px] md:h-[280px] overflow-hidden">
                   <img
                     src={exercise.imageUrl}
                     alt={exercise.title}
                     className={`w-full h-full object-cover ${
                       exercise.id === 2
-  ? "transform scale-110 object-[50%_75%]"
+  ? "object-[50%_75%]"
   : exercise.id === 5
   ? "object-center"
   : ""

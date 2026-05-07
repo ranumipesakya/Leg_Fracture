@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import api from "../utils/api";
 
 interface Exercise {
   id: number;
@@ -64,10 +65,9 @@ const Recovery3: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/exercises')
-      .then(res => res.json())
-      .then(data => {
-        setExercises(data.filter((ex: any) => ex.category === 'general-pain'));
+    api.get('/api/exercises')
+      .then(response => {
+        setExercises(response.data.filter((ex: any) => ex.category === 'general-pain'));
       })
       .catch(err => console.error('Failed to load exercises', err));
   }, []);
