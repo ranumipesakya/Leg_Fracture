@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { auth } from '../utils/auth';
 
 interface AdminNavbarProps {
   currentPage?: string;
@@ -11,7 +10,7 @@ const AdminNavbar = ({ currentPage, onNavigate }: AdminNavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: 'Admin Dashboard', page: 'admin' },
+    { label: 'Upload Exercises', page: 'admin' },
   ];
 
   const navigate = (page: string) => {
@@ -21,7 +20,8 @@ const AdminNavbar = ({ currentPage, onNavigate }: AdminNavbarProps) => {
   };
 
   const handleLogout = () => {
-    auth.logout();
+    localStorage.removeItem('adminToken');
+    window.location.hash = '#/dashboard';
   };
 
   useEffect(() => {

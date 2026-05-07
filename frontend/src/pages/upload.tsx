@@ -1,11 +1,9 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import PatientNavbar from '../components/PatientNavbar';
 import VoiceFeedback from '../components/VoiceFeedback';
 import type { ResultType } from '../components/VoiceFeedback';
-import { auth } from '../utils/auth';
-import api from '../utils/api';
-import toast from 'react-hot-toast';
 import {
   Upload as UploadIcon,
   FileText,
@@ -40,6 +38,7 @@ type PreviewImage = {
 };
 
 const Upload = () => {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
@@ -71,11 +70,11 @@ const Upload = () => {
   const handleAnalyze = async () => {
     if (!file) return;
 
-    const userToken = auth.getToken();
+    const userToken = localStorage.getItem('userToken');
     if (!userToken) {
       const uploadCount = parseInt(localStorage.getItem('uploadCount') || '0', 10);
       if (uploadCount >= 3) {
-        toast.error('Free limit reached. Please login to continue.');
+        alert('You have reached the free upload limit (3 uploads). Please register or login to continue using BoneScan AI.');
         window.location.hash = '#/auth';
         return;
       }
@@ -88,23 +87,19 @@ const Upload = () => {
     try {
       setLoading(true);
 
-      const response = await api.post('/api/predict', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data'
-        },
+      const response = await axios.post(`${apiBaseUrl}/api/predict`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       setResult(response.data?.prediction ?? response.data);
-      toast.success('Analysis complete');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Prediction failed');
+      alert(error.response?.data?.error || 'Prediction failed');
     } finally {
       setLoading(false);
     }
   };
 
   const resetAll = () => {
-    if (preview) URL.revokeObjectURL(preview);
     setFile(null);
     setPreview(null);
     setResult(null);
@@ -302,7 +297,7 @@ const Upload = () => {
       }
     } catch (error) {
       console.error('Report generation failed:', error);
-      toast.error('Report download failed. Please try again.');
+      alert('Report download failed. Please try again.');
     }
   };
 

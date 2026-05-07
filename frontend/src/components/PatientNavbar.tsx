@@ -1,7 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { FaUser } from 'react-icons/fa';
-import { auth } from '../utils/auth';
 
 interface PatientNavbarProps {
   currentPage?: string;
@@ -10,19 +8,12 @@ interface PatientNavbarProps {
 
 const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement>(null);
-
-  const userToken = auth.getToken();
-  const userEmail = localStorage.getItem('userEmail');
 
   const navLinks = [
-    { label: 'Home', page: 'dashboard' },
-    { label: 'Dashboard', page: 'analytics' },
+    { label: 'Dashboard', page: 'dashboard' },
     { label: 'Physiotherapy', page: 'physio' },
     { label: 'Upload X-Ray', page: 'upload' },
   ];
-
 
   const navigate = (page: string) => {
     setMobileMenuOpen(false);
@@ -30,24 +21,13 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
     else window.location.hash = `/${page}`;
   };
 
-  const handleProfileNavigation = (tab: string) => {
-    localStorage.setItem('profileTab', tab);
-    setProfileMenuOpen(false);
-    navigate('profile');
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
-        setProfileMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const userToken = localStorage.getItem('userToken');
+  const userEmail = localStorage.getItem('userEmail');
 
   const handleLogout = () => {
-    auth.logout();
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userEmail');
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -86,46 +66,16 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
             </button>
           ))}
           {userToken ? (
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-                title="User Menu"
-              >
-                <FaUser className="text-xl" />
-              </button>
-              
-              {profileMenuOpen && (
-                <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 overflow-hidden transform origin-top-right transition-all">
-                  <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 mb-1">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userEmail}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Manage Account</p>
-                  </div>
-                  <button 
-                    onClick={() => handleProfileNavigation('overview')}
-                    className="w-full text-left px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    View Profile
-                  </button>
-                  <button 
-                    onClick={() => handleProfileNavigation('edit')}
-                    className="w-full text-left px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    Edit Profile
-                  </button>
-                  <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-                  <button 
-                    onClick={() => { setProfileMenuOpen(false); handleLogout(); }}
-                    className="w-full text-left px-5 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={handleLogout}
+              className="px-5 py-2 rounded-full bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all duration-300 shadow-sm shadow-red-500/20"
+              title={`Logged in as ${userEmail}`}
+            >
+              Logout
+            </button>
           ) : (
             <button
-              onClick={() => navigate('auth')}
+              onClick={() => navigate('portal')}
               className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all duration-300 shadow-sm shadow-blue-500/20"
             >
               Login
@@ -159,36 +109,19 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
             </button>
           ))}
           {userToken ? (
-            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <div className="px-4 py-2 mb-2">
-                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userEmail}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Manage Account</p>
-              </div>
-              <button
-                onClick={() => handleProfileNavigation('overview')}
-                className="w-full text-left rounded-xl px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all"
-              >
-                View Profile
-              </button>
-              <button
-                onClick={() => handleProfileNavigation('edit')}
-                className="w-full text-left rounded-xl px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all"
-              >
-                Edit Profile
-              </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="w-full text-center rounded-xl px-4 py-3 bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all duration-300 shadow-sm shadow-red-500/20 mt-2"
-              >
-                Logout
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleLogout();
+              }}
+              className="w-full text-center rounded-xl px-4 py-3 bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all duration-300 shadow-sm shadow-red-500/20"
+              title={`Logged in as ${userEmail}`}
+            >
+              Logout
+            </button>
           ) : (
             <button
-              onClick={() => navigate('auth')}
+              onClick={() => navigate('portal')}
               className="w-full text-center rounded-xl px-4 py-3 bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all duration-300 shadow-sm shadow-blue-500/20"
             >
               Login

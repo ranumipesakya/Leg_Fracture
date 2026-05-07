@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaHeartbeat, FaChevronRight, FaRegCalendarAlt, FaSnowflake, FaCompress, FaArrowUp, FaBed } from 'react-icons/fa';
 import PatientNavbar from '../components/PatientNavbar';
-import { auth } from '../utils/auth';
-import api from '../utils/api';
 
 const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -20,32 +18,12 @@ const Dashboard = () => {
     return "Good Night";
   };
 
-  const [latestScan, setLatestScan] = useState<any>(null);
-
   const userEmail = localStorage.getItem('userEmail');
-  const userFullName = localStorage.getItem('userFullName');
-  const userToken = auth.getToken();
-
   let userName = 'User';
-  if (userFullName) {
-    userName = userFullName;
-  } else if (userEmail) {
+  if (userEmail) {
     const rawName = userEmail.split('@')[0];
     userName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   }
-
-  useEffect(() => {
-    if (userToken) {
-      api.get('/api/analytics/me')
-      .then(response => {
-        const data = response.data;
-        if (data.recentScans && data.recentScans.length > 0) {
-          setLatestScan(data.recentScans[0]);
-        }
-      })
-      .catch(err => console.error('Failed to fetch latest scan:', err));
-    }
-  }, [userToken]);
 
   const greeting = getGreeting();
 
@@ -81,30 +59,12 @@ const Dashboard = () => {
         <div className="relative mb-8 md:mb-12 overflow-hidden p-6 sm:p-8 md:p-12 rounded-[28px] sm:rounded-[36px] md:rounded-[48px] bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 md:gap-10">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
-                {greeting}, <span className="text-blue-600 dark:text-blue-400 whitespace-nowrap">{userName}</span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+                {greeting}, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-4 sm:mt-5 md:mt-6 text-base sm:text-lg md:text-xl font-medium max-w-2xl leading-relaxed">
                 Your professional AI-powered diagnostic portal for musculoskeletal health.
               </p>
-              {latestScan && (
-                <div className="mt-6 flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-700">
-                  <div className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-2 ${
-                    latestScan.result === 'Fractured' ? 'bg-red-50 dark:bg-red-900/20 text-red-600' :
-                    latestScan.result === 'Not Fractured' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' :
-                    'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${
-                      latestScan.result === 'Fractured' ? 'bg-red-500' :
-                      latestScan.result === 'Not Fractured' ? 'bg-emerald-500' : 'bg-blue-500'
-                    }`} />
-                    Latest Scan: {latestScan.result}
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                    {new Date(latestScan.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
             </div>
             <div className="flex gap-4 w-full lg:w-auto">
                <div className="w-full lg:w-auto px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center gap-4 sm:gap-5 md:gap-6">

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { FaLock, FaEnvelope, FaUserShield, FaArrowLeft } from 'react-icons/fa';
-import { auth } from '../utils/auth';
-import toast from 'react-hot-toast';
+
+import { FaHeartbeat, FaLock, FaEnvelope, FaUserShield, FaArrowLeft } from 'react-icons/fa';
+
+const API_URL = 'http://localhost:5000/api/auth';
 
 const AdminAuth = () => {
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-  const API_URL = `${apiBaseUrl}/api/auth`;
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +17,7 @@ const AdminAuth = () => {
     setIsLoading(true);
 
     try {
-      const endpoint = isLogin ? '/admin/login' : '/admin/register';
+      const endpoint = isLogin ? '/login' : '/register';
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
@@ -34,14 +33,12 @@ const AdminAuth = () => {
       }
 
       if (isLogin) {
-        auth.setToken(data.token, true);
-        auth.setUser({ email: data.email || email, role: 'admin' });
-        toast.success('Admin access granted');
+        localStorage.setItem('adminToken', data.token);
         window.location.hash = '#/admin';
         window.location.reload();
       } else {
         setIsLogin(true);
-        toast.success('Admin account created! Please login.');
+        setError('Registration successful! Please login.');
       }
     } catch (err: any) {
       setError(err.message);

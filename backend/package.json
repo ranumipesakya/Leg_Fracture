@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "sync:exercises": "node src/scripts/syncExercises.js"
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
