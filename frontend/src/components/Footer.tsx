@@ -4,7 +4,8 @@ const Footer = () => {
 
   const footerLinks = {
     Product: [
-      { label: 'Dashboard', href: '#/dashboard' },
+      { label: 'Home', href: '#/dashboard' },
+      { label: 'Dashboard', href: '#/analytics' },
       { label: 'Upload X-Ray', href: '#/upload' },
       { label: 'Physiotherapy', href: '#/physio' },
       { label: 'Recovery Progress', href: '#/recovery1' },

@@ -9,9 +9,11 @@ import Chatbot from "./components/Chatbot";
 import Footer from "./components/Footer";
 import AccessibilityToolbar from "./components/AccessibilityToolbar";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminAuth from "./pages/AdminAuth";
 import UserAuth from "./pages/UserAuth";
-import PortalSelection from "./pages/PortalSelection";
+import Profile from "./pages/Profile";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import { Toaster } from "react-hot-toast";
+import { auth } from "./utils/auth";
 
 function getHashPath() {
   const hash = window.location.hash || "";
@@ -32,32 +34,38 @@ function App() {
 
   let page;
 
-  if (path === "/dashboard") page = <Dashboard />;
+
+
+  if (path === "/dashboard" || path === "/home") page = <Dashboard />;
   else if (path === "/upload") page = <UploadPage />;
   else if (path === "/physio") page = <Physio />;
   else if (path === "/recovery1") page = <Recovery1 />;
   else if (path === "/recovery2") page = <Recovery2 />;
   else if (path === "/recovery3") page = <Recovery3 />;
-  else if (path === "/admin-auth") page = <AdminAuth />;
-  else if (path === "/admin") {
-    if (!localStorage.getItem('adminToken')) {
-      page = <AdminAuth />;
+  else if (path === "/analytics") page = <AnalyticsDashboard />;
+  else if (path === "/admin" || path === "/admin/dashboard") {
+    if (!auth.isAdmin()) {
+      window.location.hash = "#/home";
+      page = <Dashboard />;
     } else {
       page = <AdminDashboard />;
     }
   }
   else if (path === "/auth") page = <UserAuth />;
-  else if (path === "/portal") page = <PortalSelection />;
+  else if (path === "/profile") page = <Profile />;
   else page = <Dashboard />;
+
+  const hideChatbot = path === "/auth" || path === "/admin" || path === "/admin/dashboard";
 
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-grow">
-        {page}
-      </div>
+      {page}
+      <Toaster position="top-center" reverseOrder={false} />
       <AccessibilityToolbar />
       <Footer />
-      <Chatbot />
+      {!hideChatbot && <Chatbot />}
+      </div>
     </div>
   );
 }
