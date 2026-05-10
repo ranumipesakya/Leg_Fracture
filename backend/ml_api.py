@@ -16,7 +16,9 @@ xray_model = tf.keras.models.load_model("models/xray_detector_v2.keras")
 leg_model = tf.keras.models.load_model("models/leg_xray_classifier.keras")
 fracture_model = tf.keras.models.load_model("models/fracture_efficientnetB3_final.keras")
 
-IMG_SIZE = (224, 224)
+XRAY_IMG_SIZE = (224, 224)
+LEG_IMG_SIZE = (224, 224)
+FRACTURE_IMG_SIZE = (300, 300)
 
 # Grad-CAM settings
 GRADCAM_FOLDER = "static/gradcam"
@@ -31,7 +33,7 @@ print("Fracture Model (signal) input shape:", fracture_model.input_shape)
 def preprocess_for_xray(image):
     image = ImageOps.exif_transpose(image)
     image = image.convert("L")
-    image = image.resize(IMG_SIZE)
+    image = image.resize(XRAY_IMG_SIZE)
 
     img_array = np.array(image, dtype=np.float32) / 255.0
     img_array = np.stack([img_array, img_array, img_array], axis=-1)
@@ -42,7 +44,7 @@ def preprocess_for_xray(image):
 def preprocess_for_leg(image):
     image = ImageOps.exif_transpose(image)
     image = image.convert("RGB")
-    image = image.resize(IMG_SIZE)
+    image = image.resize(LEG_IMG_SIZE)
 
     img_array = np.array(image, dtype=np.float32) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
@@ -55,7 +57,7 @@ def preprocess_for_fracture(image):
     # Convert to grayscale first then resize and stack to 3 channels.
     # This is often more robust for X-rays as it removes color-based noise/artifacts.
     image = image.convert("L")
-    image = image.resize(IMG_SIZE)
+    image = image.resize(FRACTURE_IMG_SIZE)
 
     img_array = np.array(image, dtype=np.float32) / 255.0
     # Stack to 3 channels (R=G=B)
@@ -330,22 +332,74 @@ def predict():
             "gradcam_image": None
         })
 
-    # 3) Fracture check
-    fracture_input = preprocess_for_fracture(image)
-    fracture_pred = float(fracture_model.predict(fracture_input, verbose=0)[0][0])
-    
-    # Stricter default threshold to reduce false positives.
-    # Can be overridden with FRACTURE_THRESHOLD in backend/.env.
-    threshold = float(os.getenv("FRACTURE_THRESHOLD", "0.55"))
-    fractured = fracture_pred >= threshold
-    fracture_prediction = "Fractured" if fractured else "Not Fractured"
-    fracture_confidence = float(fracture_pred if fractured else 1 - fracture_pred)
+    # =====================================================
+    # 3) FRACTURE CHECK
+    # =====================================================
 
-    print(f"--- FRACTURE ANALYSIS ---")
-    print(f"Raw Prediction: {fracture_pred:.6f}")
-    print(f"Threshold Used: {threshold}")
-    print(f"Final Result: {fracture_prediction}")
-    print(f"-------------------------")
+    fracture_input = preprocess_for_fracture(image)
+
+    print("Fracture input shape:", fracture_input.shape)
+
+    fracture_pred = float(
+        fracture_model.predict(
+            fracture_input,
+            verbose=0
+        )[0][0]
+    )
+
+    # =====================================================
+    # THRESHOLD
+    # =====================================================
+
+    threshold = float(
+        os.getenv("FRACTURE_THRESHOLD", "0.40")
+    )
+
+    # =====================================================
+    # CORRECT FRACTURE LOGIC
+    # =====================================================
+
+    # If prediction >= threshold
+    # => FRACTURED
+
+    fractured = fracture_pred >= threshold
+
+    fracture_prediction = (
+        "Fractured"
+        if fractured
+        else "Not Fractured"
+    )
+
+    # Confidence logic
+
+    if fractured:
+        fracture_confidence = fracture_pred
+    else:
+        fracture_confidence = 1 - fracture_pred
+
+    fracture_confidence = float(fracture_confidence)
+
+    # =====================================================
+    # DEBUG LOGS
+    # =====================================================
+
+    print("\n========== FRACTURE ANALYSIS ==========")
+
+    print("Raw Prediction:", fracture_pred)
+
+    print("Threshold Used:", threshold)
+
+    print("Fractured Boolean:", fractured)
+
+    print("Final Prediction:", fracture_prediction)
+
+    print("Confidence:", fracture_confidence)
+
+    print("=======================================\n")
+
+    # =====================================================
+    # RECOMMENDATION
+    # =====================================================
 
     recommendation = (
         "Potential fracture detected. Please consult an orthopedic specialist."
@@ -353,41 +407,38 @@ def predict():
         else "No fracture detected by AI screening. Clinical confirmation is still recommended."
     )
 
-    gradcam_image = None
-
-    if fractured:
-        try:
-            heatmap = make_gradcam_heatmap(
-                fracture_input,
-                fracture_model,
-                LAST_CONV_LAYER_NAME,
-                class_index=1
-            )
-
-            filename = f"{uuid.uuid4().hex}_gradcam.jpg"
-            out_path = os.path.join(GRADCAM_FOLDER, filename)
-
-            save_xai_box_image(image, heatmap, out_path)
-
-            gradcam_image = f"http://127.0.0.1:5001/static/gradcam/{filename}"
-        except Exception as e:
-            print("Grad-CAM generation error:", str(e))
-            gradcam_image = None
+    # =====================================================
+    # FINAL RESPONSE
+    # =====================================================
 
     return jsonify({
+
         "report_id": report_id,
+
         "generated_at": generated_at,
+
         "stage": "fracture_check",
+
         "is_xray": True,
+
         "is_leg_xray": True,
+
         "message": "Valid leg X-ray image",
-        "xray_confidence": xray_pred,
-        "leg_confidence": leg_confidence,
+
+        "xray_confidence": round(float(xray_pred), 4),
+
+        "leg_confidence": round(float(leg_confidence), 4),
+
         "fracture_prediction": fracture_prediction,
-        "fracture_confidence": fracture_confidence,
-        "fracture_raw_prediction": fracture_pred,
-        "recommendation": recommendation,
-        "gradcam_image": gradcam_image
+
+        "fracture_confidence": round(float(fracture_confidence), 4),
+
+        "fracture_raw_prediction": round(float(fracture_pred), 4),
+
+        "threshold_used": threshold,
+
+        "recommendation": recommendation
+
     })
 
 
