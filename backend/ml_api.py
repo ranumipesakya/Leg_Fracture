@@ -14,7 +14,7 @@ CORS(app)
 # Load models
 xray_model = tf.keras.models.load_model("models/xray_detector_v2.keras")
 leg_model = tf.keras.models.load_model("models/leg_xray_classifier.keras")
-fracture_model = tf.keras.models.load_model("models/fracture_signal.keras")
+fracture_model = tf.keras.models.load_model("models/fracture_efficientnetB3_final.keras")
 
 IMG_SIZE = (224, 224)
 
@@ -269,7 +269,7 @@ def predict():
     xray_pred = float(xray_model.predict(xray_input, verbose=0)[0][0])
     print("xray_pred:", xray_pred)
 
-    if xray_pred >= 0.60:
+    if xray_pred >= 0.40:
         pass
     elif xray_pred <= 0.40:
         return jsonify({
@@ -310,7 +310,7 @@ def predict():
     print("leg_pred:", leg_pred)
 
     # mapping: {'leg_xray': 0, 'not_leg_xray': 1}
-    is_leg_xray = leg_pred < 0.5
+    is_leg_xray = leg_pred < 0.4
     leg_confidence = float(1 - leg_pred if is_leg_xray else leg_pred)
 
     if not is_leg_xray:
