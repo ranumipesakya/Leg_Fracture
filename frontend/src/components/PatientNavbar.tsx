@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { FaUser } from 'react-icons/fa';
 import { auth } from '../utils/auth';
+import { useTheme } from './ThemeContext';
 
 interface PatientNavbarProps {
   currentPage?: string;
@@ -12,15 +13,17 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const userToken = auth.getToken();
   const userEmail = localStorage.getItem('userEmail');
 
   const navLinks = [
     { label: 'Home', page: 'dashboard' },
+    { label: 'Upload X-Ray', page: 'upload' },
     { label: 'Dashboard', page: 'analytics' },
     { label: 'Physiotherapy', page: 'physio' },
-    { label: 'Upload X-Ray', page: 'upload' },
+    { label: 'Healing Monitoring', page: 'healing-monitoring' },
   ];
 
 
@@ -57,7 +60,7 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-40 bg-[#F0F7FF]/95 dark:bg-slate-950/95 backdrop-blur font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <nav className="sticky top-0 z-40 bg-[#E3EFFF]/95 dark:bg-slate-950/95 backdrop-blur font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       {/* Left: Logo */}
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
         <button
@@ -85,6 +88,16 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
               {link.label}
             </button>
           ))}
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+
           {userToken ? (
             <div className="relative" ref={profileMenuRef}>
               <button
@@ -145,6 +158,17 @@ const PatientNavbar = ({ currentPage, onNavigate }: PatientNavbarProps) => {
 
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 dark:border-slate-800 px-4 pb-4 pt-3 space-y-2">
+          {/* Mobile Theme Toggle */}
+          <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 mb-2">
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Theme</span>
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold transition-all"
+            >
+              {theme === 'light' ? <><Moon size={14} /> Dark Mode</> : <><Sun size={14} /> Light Mode</>}
+            </button>
+          </div>
+
           {navLinks.map((link) => (
             <button
               key={link.page}

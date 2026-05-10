@@ -3,6 +3,7 @@ import { FaUser, FaEnvelope, FaCalendarAlt, FaLock, FaArrowLeft, FaBirthdayCake,
 import { auth } from '../utils/auth';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import LoadingScreen from '../components/LoadingScreen';
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -128,15 +129,11 @@ const Profile = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingScreen fullPage />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] pb-20">
+    <div className="min-h-screen bg-[#E3EFFF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] pb-20">
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

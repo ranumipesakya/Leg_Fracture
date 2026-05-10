@@ -28,3 +28,7 @@ dist-ssr
 backend/.env
 frontend/.env
 *.env
+
+# Backend Artifacts
+backend/static/gradcam/
+backend/uploads/

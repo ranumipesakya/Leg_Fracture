@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PatientNavbar from '../components/PatientNavbar';
+import LoadingScreen from '../components/LoadingScreen';
 import { auth } from '../utils/auth';
 import api from '../utils/api';
 import { FaChartBar, FaUpload, FaBone, FaCheckCircle, FaBullseye, FaClock, FaExclamationTriangle, FaLock } from 'react-icons/fa';
@@ -52,7 +53,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   if (notLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif]">
+      <div className="min-h-screen bg-[#E3EFFF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif]">
         <PatientNavbar currentPage="analytics" />
         <div className="max-w-xl mx-auto px-4 pt-32 text-center">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -87,7 +88,7 @@ const AnalyticsDashboard: React.FC = () => {
   const fracturedRatio = totalScans > 0 ? ((fracturedCount / totalScans) * 100).toFixed(1) : '0';
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <div className="min-h-screen bg-[#E3EFFF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <PatientNavbar currentPage="analytics" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-20">
@@ -107,10 +108,7 @@ const AnalyticsDashboard: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-20">
-            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-500 font-bold">Loading your analytics...</p>
-          </div>
+          <LoadingScreen />
         ) : (
           <>
             {/* Stats Cards — 3 columns, no "Registered Users" */}
@@ -195,19 +193,65 @@ const AnalyticsDashboard: React.FC = () => {
                   </div>
 
                   {/* Bar Chart */}
-                  <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
-                      My Monthly Uploads
-                    </h3>
+                  <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
+                        My Monthly Uploads
+                      </h3>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-md border border-slate-100 dark:border-slate-800">History</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-6">Tracking your scan activity over the past months</p>
+                    
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data!.monthlyData} barCategoryGap="20%">
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="month" tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                          <YAxis tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                          <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px', fontWeight: 700 }} />
-                          <Bar dataKey="uploads" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                        <BarChart data={data!.monthlyData} barCategoryGap="25%">
+                          <defs>
+                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#3b82f6" />
+                              <stop offset="100%" stopColor="#1d4ed8" />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.4} />
+                          <XAxis 
+                            dataKey="month" 
+                            tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} 
+                            axisLine={false} 
+                            tickLine={false} 
+                            dy={10}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} 
+                            axisLine={false} 
+                            tickLine={false} 
+                          />
+                          <Tooltip 
+                            cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
+                            contentStyle={{ 
+                              backgroundColor: '#0f172a', 
+                              border: 'none', 
+                              borderRadius: '16px', 
+                              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                              color: '#fff', 
+                              fontSize: '12px', 
+                              fontWeight: 700,
+                              padding: '12px 16px'
+                            }} 
+                            itemStyle={{ color: '#60a5fa' }}
+                          />
+                          <Bar 
+                            dataKey="uploads" 
+                            fill="url(#barGradient)" 
+                            radius={[6, 6, 0, 0]} 
+                            animationDuration={1500}
+                            label={{ position: 'top', fill: '#64748b', fontSize: 11, fontWeight: 800, offset: 10 }}
+                            activeBar={{ 
+                              fill: '#2563eb',
+                              stroke: '#3b82f6',
+                              strokeWidth: 1,
+                              filter: 'drop-shadow(0px 4px 6px rgba(37, 99, 235, 0.3))'
+                            }}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -259,7 +303,9 @@ const AnalyticsDashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {data.recentScans.map((scan, i) => (
+                      {data.recentScans
+                        .filter(scan => scan.result === 'Fractured' || scan.result === 'Not Fractured')
+                        .map((scan, i) => (
                         <tr key={i} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                           <td className="py-3.5 pr-4 text-sm font-bold text-slate-400">{i + 1}</td>
                           <td className="py-3.5 pr-4">

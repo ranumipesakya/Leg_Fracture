@@ -79,7 +79,7 @@ const Recovery2: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <div className="min-h-screen bg-[#E3EFFF] dark:bg-slate-950 font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
       <section
         className="h-[100svh] md:h-screen overflow-hidden"
         onWheel={(e) => {
@@ -96,7 +96,7 @@ const Recovery2: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10 md:to-black/0" />
           </div>
 
-          <div className="flex items-center justify-center h-full px-6 py-8 md:py-10 md:px-10 bg-[#F0F7FF] dark:bg-slate-900 transition-colors">
+          <div className="flex items-center justify-center h-full px-6 py-8 md:py-10 md:px-10 bg-[#E3EFFF] dark:bg-slate-900 transition-colors">
             <div className="w-full max-w-xl">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-[#1A202C] dark:text-white uppercase leading-tight">
                 After a Fall
@@ -112,7 +112,7 @@ const Recovery2: React.FC = () => {
         </div>
       </section>
 
-      <section ref={modulesSectionRef} className="py-20 container mx-auto px-4 bg-[#F0F7FF] dark:bg-slate-950 transition-colors">
+      <section ref={modulesSectionRef} className="py-20 container mx-auto px-4 bg-[#E3EFFF] dark:bg-slate-950 transition-colors">
         <div className="text-center mb-16">
           <span className="text-[#4A90FF] uppercase tracking-[0.3em] text-base md:text-lg font-black block mb-2">
             Step-by-Step
@@ -211,7 +211,7 @@ const Recovery2: React.FC = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 pb-16 bg-[#F0F7FF] dark:bg-slate-950 transition-colors">
+      <section className="container mx-auto px-4 pb-16 bg-[#E3EFFF] dark:bg-slate-950 transition-colors">
         <div className="max-w-5xl mx-auto bg-[#1A202C] dark:bg-slate-900 rounded-2xl shadow-lg p-6 md:p-8 border border-transparent dark:border-slate-800">
           <h3 className="text-center text-lg md:text-xl font-extrabold tracking-tight text-white">
             Medical Disclaimer

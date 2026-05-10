@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaHeartbeat, FaChevronRight, FaRegCalendarAlt, FaSnowflake, FaCompress, FaArrowUp, FaBed } from 'react-icons/fa';
+import { FaHeartbeat, FaChevronRight, FaRegCalendarAlt, FaSnowflake, FaCompress, FaArrowUp, FaBed, FaChartBar } from 'react-icons/fa';
 import PatientNavbar from '../components/PatientNavbar';
 import { auth } from '../utils/auth';
 import api from '../utils/api';
@@ -40,7 +40,13 @@ const Dashboard = () => {
       .then(response => {
         const data = response.data;
         if (data.recentScans && data.recentScans.length > 0) {
-          setLatestScan(data.recentScans[0]);
+          // Find the latest scan that is actually a leg X-ray (either Fractured or Not Fractured)
+          const latestValidScan = data.recentScans.find((s: any) => 
+            s.result === 'Fractured' || s.result === 'Not Fractured'
+          );
+          if (latestValidScan) {
+            setLatestScan(latestValidScan);
+          }
         }
       })
       .catch(err => console.error('Failed to fetch latest scan:', err));
@@ -61,18 +67,18 @@ const Dashboard = () => {
       title: "Upload X-Ray",
       description: "AI-powered fracture analysis and detection.",
       icon: <FaHeartbeat className="w-8 h-8 text-blue-600" />,
-      colorClass: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800",
+      link: "/upload"
     },
     {
-      title: "Physiotherapy",
-      description: "Personalized recovery exercises and guidelines.",
-      icon: null,
-      colorClass: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800",
+      title: "My Analytics",
+      description: "Detailed charts and scan history.",
+      icon: <FaChartBar className="w-8 h-8 text-emerald-600" />,
+      link: "/analytics"
     }
   ];
 
   return (
-    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-[#E3EFFF] dark:bg-slate-950 min-h-screen transition-colors duration-500">
       <PatientNavbar currentPage="dashboard" />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-16 lg:py-20">
@@ -145,13 +151,11 @@ const Dashboard = () => {
                     tabIndex={0}
                     className={`group relative p-6 sm:p-8 md:p-10 rounded-[24px] sm:rounded-[32px] md:rounded-[40px] border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl transition-shadow cursor-pointer h-full min-h-[180px] sm:min-h-[200px] md:min-h-[220px] flex flex-col justify-center`}
                     onClick={() => {
-                        if (index === 0) window.location.hash = "/upload";
-                        if (index === 1) window.location.hash = "/physio";
+                        window.location.hash = item.link;
                     }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
-                        if (index === 0) window.location.hash = "/upload";
-                        if (index === 1) window.location.hash = "/physio";
+                           window.location.hash = item.link;
                         }
                     }}
                     >

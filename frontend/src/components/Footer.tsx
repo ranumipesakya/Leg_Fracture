@@ -13,7 +13,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300 font-['Plus_Jakarta_Sans',_sans-serif]">
+    <footer className="bg-[#E3EFFF] dark:bg-slate-950 border-t border-blue-200/50 dark:border-slate-800 transition-colors duration-300 font-['Plus_Jakarta_Sans',_sans-serif]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-12 md:mb-16">
           {/* Brand Column */}
@@ -30,7 +30,7 @@ const Footer = () => {
                 <a
                   key={i}
                   href="#"
-                  className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-[#3B82F6] dark:hover:text-cyan-400 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all shadow-sm"
+                  className="w-10 h-10 rounded-xl bg-white/50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-[#3B82F6] dark:hover:text-cyan-400 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-blue-200 dark:hover:border-slate-700 transition-all shadow-sm"
                 >
                   <Icon className="w-5 h-5" />
                 </a>

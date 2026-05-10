@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserAuth from "./pages/UserAuth";
 import Profile from "./pages/Profile";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import HealingMonitoring from "./pages/HealingMonitoring";
 import { Toaster } from "react-hot-toast";
 import { auth } from "./utils/auth";
 
@@ -53,6 +54,7 @@ function App() {
   }
   else if (path === "/auth") page = <UserAuth />;
   else if (path === "/profile") page = <Profile />;
+  else if (path === "/healing-monitoring") page = <HealingMonitoring />;
   else page = <Dashboard />;
 
   const hideChatbot = path === "/auth" || path === "/admin" || path === "/admin/dashboard";

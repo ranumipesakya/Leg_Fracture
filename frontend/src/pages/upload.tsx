@@ -13,11 +13,11 @@ import {
   Loader2,
   RefreshCw,
   ShieldCheck,
-  Activity,
   BarChart3,
   Image as ImageIcon,
   X
 } from 'lucide-react';
+import LoadingScreen from '../components/LoadingScreen';
 
 type PredictionResult = {
   report_id: string;
@@ -89,7 +89,7 @@ const Upload = () => {
       setLoading(true);
 
       const response = await api.post('/api/predict', formData, {
-        headers: { 
+        headers: {
           'Content-Type': 'multipart/form-data'
         },
       });
@@ -307,7 +307,7 @@ const Upload = () => {
   };
 
   return (
-    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-[#E3EFFF] dark:bg-slate-950 min-h-screen transition-colors duration-500">
       <PatientNavbar currentPage="upload" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-14 lg:py-20">
@@ -342,7 +342,7 @@ const Upload = () => {
                     </div>
                   )}
 
-                    <div className="relative z-10 flex flex-col items-center text-center w-full px-4 sm:px-6 md:px-8 overflow-hidden">
+                  <div className="relative z-10 flex flex-col items-center text-center w-full px-4 sm:px-6 md:px-8 overflow-hidden">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl flex items-center justify-center mb-6 sm:mb-8 border border-slate-50 dark:border-slate-800 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
                       <UploadIcon className="w-8 h-8 sm:w-9 sm:h-9 text-blue-600" />
                     </div>
@@ -369,8 +369,8 @@ const Upload = () => {
                 <div className="mt-6 sm:mt-8 md:mt-10 space-y-4">
                   <button
                     onClick={handleAnalyze}
-                    disabled={loading || !file}
-                    className="w-full h-14 sm:h-16 bg-slate-900 dark:bg-blue-600 hover:bg-black dark:hover:bg-blue-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white text-xs sm:text-sm font-black rounded-2xl sm:rounded-[24px] uppercase tracking-[0.12em] sm:tracking-[0.2em] transition-all flex items-center justify-center gap-3 sm:gap-4 shadow-2xl group"
+                    disabled={loading}
+                    className="w-full h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-200 disabled:to-slate-300 dark:disabled:from-slate-800 dark:disabled:to-slate-900 text-white text-xs sm:text-sm font-black rounded-xl sm:rounded-2xl uppercase tracking-[0.15em] transition-all duration-500 flex items-center justify-center gap-3 shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 disabled:translate-y-0 disabled:shadow-none group relative overflow-hidden"
                   >
                     {loading ? (
                       <>
@@ -399,7 +399,7 @@ const Upload = () => {
             </section>
           )}
 
-            <section className={result ? "lg:col-span-12 max-w-4xl mx-auto w-full" : "lg:col-span-7"}>
+          <section className={result ? "lg:col-span-12 max-w-4xl mx-auto w-full" : "lg:col-span-7"}>
             <div className="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[36px] md:rounded-[48px] p-5 sm:p-8 md:p-10 lg:p-12 shadow-3xl border border-slate-100 dark:border-slate-800 min-h-[560px] sm:min-h-[620px] md:min-h-[680px] flex flex-col group">
               <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between mb-8 sm:mb-10 md:mb-12 pb-6 border-b border-slate-50 dark:border-slate-800">
                 <div className="space-y-1">
@@ -450,19 +450,8 @@ const Upload = () => {
               )}
 
               {loading && (
-                <div className="flex-1 flex flex-col items-center justify-center space-y-10">
-                  <div className="relative">
-                    <div className="w-24 h-24 border-8 border-blue-50 dark:border-blue-900/30 border-t-blue-600 rounded-full animate-spin"></div>
-                    <Activity size={32} className="text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-                  </div>
-                  <div className="text-center space-y-3">
-                    <p className="text-2xl font-black text-blue-600 animate-pulse tracking-tight">
-                      Neural Interference Processing
-                    </p>
-                    <p className="text-sm text-slate-400 font-medium">
-                      Deconstructing pixel data • Map-Reduce Sequencing...
-                    </p>
-                  </div>
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <LoadingScreen />
                 </div>
               )}
 

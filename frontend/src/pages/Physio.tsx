@@ -62,11 +62,11 @@ const Physio: React.FC = () => {
   };
 
   return (
-    <div className="font-['Plus_Jakarta_Sans',_sans-serif] transition-colors duration-300">
+    <div className="font-['Plus_Jakarta_Sans',_sans-serif] bg-[#E3EFFF] dark:bg-slate-950 transition-colors duration-300">
       <PatientNavbar currentPage="physio" />
 
       {/* Header / Hero */}
-      <section className="relative overflow-hidden border-b border-blue-100 bg-[#F0F7FF] dark:border-slate-800 dark:bg-slate-950">
+      <section className="relative overflow-hidden border-b border-blue-100 bg-[#E3EFFF] dark:border-slate-800 dark:bg-slate-950">
         <div className="relative container mx-auto px-6 py-16 md:py-20">
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div>
@@ -132,7 +132,7 @@ const Physio: React.FC = () => {
       <section
         ref={offeringsRef}
         id="physio-offerings"
-        className="py-24 bg-[#F0F7FF] dark:bg-slate-950"
+        className="py-24 bg-[#E3EFFF] dark:bg-slate-950"
       >
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">

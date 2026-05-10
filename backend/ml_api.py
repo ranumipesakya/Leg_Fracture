@@ -14,7 +14,7 @@ CORS(app)
 # Load models
 xray_model = tf.keras.models.load_model("models/xray_detector_v2.keras")
 leg_model = tf.keras.models.load_model("models/leg_xray_classifier.keras")
-fracture_model = tf.keras.models.load_model("models/fracture_final_best.keras")
+fracture_model = tf.keras.models.load_model("models/fracture_signal.keras")
 
 IMG_SIZE = (224, 224)
 
@@ -25,8 +25,7 @@ os.makedirs(GRADCAM_FOLDER, exist_ok=True)
 LAST_CONV_LAYER_NAME = "top_activation"
 
 print("Models loaded successfully")
-print("Fracture model input shape:", fracture_model.input_shape)
-print("Fracture model output shape:", fracture_model.output_shape)
+print("Fracture Model (signal) input shape:", fracture_model.input_shape)
 
 
 def preprocess_for_xray(image):
@@ -53,10 +52,14 @@ def preprocess_for_leg(image):
 def preprocess_for_fracture(image):
     # Fix orientation based on EXIF data
     image = ImageOps.exif_transpose(image)
-    image = image.convert("RGB")
+    # Convert to grayscale first then resize and stack to 3 channels.
+    # This is often more robust for X-rays as it removes color-based noise/artifacts.
+    image = image.convert("L")
     image = image.resize(IMG_SIZE)
 
     img_array = np.array(image, dtype=np.float32) / 255.0
+    # Stack to 3 channels (R=G=B)
+    img_array = np.stack([img_array, img_array, img_array], axis=-1)
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
@@ -330,18 +333,19 @@ def predict():
     # 3) Fracture check
     fracture_input = preprocess_for_fracture(image)
     fracture_pred = float(fracture_model.predict(fracture_input, verbose=0)[0][0])
-    print("fracture_pred:", fracture_pred)
-
-    # IMPORTANT:
-    # For your current saved model, >= 0.5 behaves as fractured
-    fractured = fracture_pred >= 0.5
-
+    
+    # Stricter default threshold to reduce false positives.
+    # Can be overridden with FRACTURE_THRESHOLD in backend/.env.
+    threshold = float(os.getenv("FRACTURE_THRESHOLD", "0.55"))
+    fractured = fracture_pred >= threshold
     fracture_prediction = "Fractured" if fractured else "Not Fractured"
     fracture_confidence = float(fracture_pred if fractured else 1 - fracture_pred)
 
-    print("fractured boolean:", fractured)
-    print("fracture_prediction:", fracture_prediction)
-    print("fracture_confidence:", fracture_confidence)
+    print(f"--- FRACTURE ANALYSIS ---")
+    print(f"Raw Prediction: {fracture_pred:.6f}")
+    print(f"Threshold Used: {threshold}")
+    print(f"Final Result: {fracture_prediction}")
+    print(f"-------------------------")
 
     recommendation = (
         "Potential fracture detected. Please consult an orthopedic specialist."

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaPlus, FaTrash, FaEdit, FaList, FaDumbbell, FaSearch, FaChartBar, FaUsers, FaUpload, FaBone, FaCheckCircle, FaBullseye, FaClock } from 'react-icons/fa';
 import AdminNavbar from '../components/AdminNavbar';
+import LoadingScreen from '../components/LoadingScreen';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -300,10 +301,7 @@ const AdminDashboard = () => {
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in fade-in duration-500">
             {analyticsLoading ? (
-              <div className="text-center py-20">
-                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-slate-500 font-bold">Loading analytics...</p>
-              </div>
+              <LoadingScreen />
             ) : analytics ? (
               <>
                 {/* Stats Cards */}
