@@ -40,7 +40,7 @@ function getGenerativeModel(apiKey) {
     apiKey = keys[0];
   }
 
-  const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
   const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({ model: modelName });
 }
