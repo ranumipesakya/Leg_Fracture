@@ -393,8 +393,20 @@ const AdminDashboard = () => {
                             ].filter(d => d.value > 0)} 
                             cx="50%" cy="50%" innerRadius={65} outerRadius={110} paddingAngle={4} dataKey="value" strokeWidth={0}
                           >
-                            {[1, 2, 3, 4].map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            {[
+                              { name: 'Fractured', value: analytics.fractured },
+                              { name: 'Not Fractured', value: analytics.notFractured },
+                              { name: 'Not X-Ray', value: analytics.notXray },
+                              { name: 'Not Leg X-Ray', value: analytics.notLeg },
+                            ].filter(d => d.value > 0).map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={
+                                  entry.name === 'Fractured' ? '#ef4444' : 
+                                  entry.name === 'Not Fractured' ? '#22c55e' : 
+                                  COLORS[index % COLORS.length]
+                                } 
+                              />
                             ))}
                           </Pie>
                           <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '13px', fontWeight: 700 }} />
